@@ -14,21 +14,21 @@ O usuário já autorizou a implementação ("agora sim"). Trabalhe uma etapa por
 
 ## Estado atual
 - Etapa 1 (fundação visual) pronta em `src/`, com um seletor de perfil de **pré-visualização** (`src/lib/role-context.tsx`, `AppShell`). Ele deve ser removido na Etapa 2 e o papel passar a vir de `memberships`.
-- `supabase/migrations/0001_schema.sql` e `0002_security.sql` escritos mas **nunca executados**. Primeiro passo: `supabase start`, `supabase db reset`, corrigir erros de SQL.
-- Faltam: 0003 (funções), 0004 (grants/realtime), testes SQL, integração do frontend (Etapas 2–7) e auditoria (Etapa 8).
+- `supabase/migrations/0001_schema.sql` a `0004_grants.sql` e testes SQL já estão escritos, mas **nunca foram executados nem validados**. Primeiro passo: `supabase start`, `supabase db reset`, corrigir erros de SQL e rodar os testes.
+- Faltam a integração do frontend (Etapas 2–7), a validação de concorrência e a auditoria final (Etapa 8).
 
 ## Modelo (resumo; ver 0001)
 - Vínculo: `memberships(role: institution_admin|manager|professional)`; setor: `sector_members(position, is_manager)`. Gerente só administra setores onde `is_manager = true`; `institution_admin` administra todos da instituição. `profiles.is_platform_admin` só é alterável por SQL.
 - `shifts`: `kind` work|day_off|vacation|leave; `membership_id` NULL em `work` = vaga aberta; `start_at/end_at` timestamptz (atravessam meia-noite); `shift_date` = data local no fuso da instituição; exclusão gist impede sobreposição por vínculo.
 - Trocas: `swap_proposals` tem `proposer`, `recipient` (quem decide o aceite) e `taker` (quem fica com o plantão da solicitação). `target_shift_id` = plantão do taker que vai ao solicitante (opcional). Troca direta: proposer = solicitante, recipient = taker = colega. Mural (open): proposer = taker = interessado, recipient = solicitante.
 
-## Etapa 2–3 — 0003_functions.sql (a escrever)
+## Etapa 2–3 — `0003_functions.sql` (implementado; falta validar)
 Todas `security definer`, `set search_path = ''`, mensagens de erro em português, `errcode 42501` para falta de permissão.
 - `create_institution(name, cnpj, timezone, admin_email) → jsonb{institution_id, invitation_id, token}` (só platform admin; valida fuso em `pg_timezone_names`).
 - `create_invitation(institution, sector, email, role, position, is_manager) → jsonb{id, token}`: institution_admin só por platform/institution admin; manager só por institution admin e exige setor; professional por institution admin ou `manages_sector`. Revoga convite pendente anterior igual.
 - `get_invitation(token) → jsonb` (executável por anon; só dados mínimos). `accept_invitation(token) → uuid`: e-mail do perfil deve ser igual ao do convite, não expirado; upsert de `memberships` (nunca rebaixa papel; ranking professional < manager < institution_admin) e `sector_members`; marca aceito.
 - `set_membership_status(id, status)` (institution admin, não a si mesmo) e `set_sector_member_status(id, status)` (`manages_sector`; só institution admin altera gerente).
-- Helpers internos: `notify(user, inst, type, title, msg, link, ref)`, `notify_membership(...)`, `notify_sector_managers(sector, ...)`, `has_rest_violation(membership, start, end, exclude uuid[], min_hours)`. Não executáveis pelo cliente.
+- Helpers internos: `push_notification(user, inst, type, title, msg, link, ref)`, `push_notification_membership(...)`, `push_notification_managers(sector, ...)`, `has_rest_violation(membership, start, end, exclude uuid[], min_hours)`. Não executáveis pelo cliente.
 
 ## Etapa 4 — escalas
 - `create_schedule(sector, month, year) → uuid` (`manages_sector`).
@@ -48,7 +48,7 @@ Todas `security definer`, `set search_path = ''`, mensagens de erro em portuguê
 - `mark_notifications_read(ids uuid[] default null)`; `send_shift_reminders()` (agendar com pg_cron; idempotente pelo índice único); tipos: schedule_published, schedule_changed, swap_received, swap_accepted, swap_rejected, swap_awaiting_approval, swap_approved, swap_denied, swap_cancelled, shift_reminder.
 - Realtime em `notifications`, `shifts`, `swap_requests`, `swap_proposals` (`alter publication supabase_realtime add table ...`).
 
-## 0004_grants.sql
+## `0004_grants.sql` (implementado; falta validar)
 `revoke all` em tabelas e funções de `anon`/`authenticated`/`public`; `grant select` nas tabelas; `grant update (full_name, phone) on profiles`; `grant insert, update` em `institutions, units, sectors, shift_types, coverage_rules`; `grant execute` só nas funções públicas da API (nunca nas internas nem nas de gatilho); `get_invitation` também para `anon`.
 
 ## Frontend (Etapas 2–7)

@@ -41,6 +41,8 @@ src/
 
 ## Próximos passos
 
-- Etapa 2: Supabase (Auth, profiles, institutions, memberships, sector_members) e RLS, com testes de isolamento entre duas instituições.
+- As migrações do banco (esquema, RLS, funções e grants) estão em `supabase/migrations/`.
+- Testes SQL de isolamento e fluxo de troca: `supabase/tests/01_isolamento_e_trocas.sql`. O banco ainda precisa ser validado em ambiente local antes de uso.
+- Para validar localmente, instale Docker e Supabase CLI, execute `supabase start` e `supabase db reset`, depois rode o teste SQL conforme `supabase/tests/CONCORRENCIA.md`.
 - Defina `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` em `.env` (veja `.env.example`). Nunca use `service_role` no navegador.
 - PWA (manifest, ícones e service worker) fica para quando houver backend.
