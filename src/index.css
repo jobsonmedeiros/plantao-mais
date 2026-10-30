@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Regras de impressão para separação em 2 páginas legíveis */
+@media print {
+  @page {
+    size: auto;
+    margin: 10mm 12mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #17283c !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Oculta menus, sidebars, cabeçalhos de sistema e controles interativos */
+  aside,
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Exibe elementos marcados exclusivamente para impressão */
+  .print\:block {
+    display: block !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  /* Quebra de página explícita entre a 1ª e a 2ª quinzena */
+  .print-page-break {
+    page-break-after: always !important;
+    break-after: page !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Impede quebras no meio de uma linha de tabela */
+  table,
+  tr,
+  td,
+  th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  * {
+    box-shadow: none !important;
+  }
+}
