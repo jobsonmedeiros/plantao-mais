@@ -1,48 +1,96 @@
-# Plantão+
+# 🏥 Plantão+
 
-Plataforma SaaS multi-instituição para escalas e trocas de plantão de enfermagem.
+Plataforma SaaS para gestão de escalas de plantão hospitalar. Permite que hospitais, clínicas e UPAs montem escalas mensais, que profissionais proponham trocas entre si e que a gerência aprove as alterações antes de atualizar a escala oficial.
 
-## Estado atual: Etapa 1 (fundação visual e navegação)
+> **Status:** Etapa 1 concluída (frontend estruturado). Roadmap em 7 etapas documentado no código.
 
-Esta etapa entrega só a **estrutura**: identidade visual, navegação, telas e componentes reutilizáveis.
-Nada aqui lê, grava ou simula dados reais.
+![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-5-purple) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-38bdf8) ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)
 
-- Login e recuperação de senha: formulários sem autenticação. Avisam na tela que a Etapa 2 liga o Supabase Auth.
-- Dashboards distintos para Administrador, Gerência e Profissional. Valores aparecem como "—".
-- Telas de escalas, profissionais, setores, trocas, aprovações, notificações e configurações, cada uma indicando em qual etapa passa a funcionar.
-- O seletor "Ver como" existe só para pré-visualizar os menus de cada perfil. Ele **não é controle de acesso**; a autorização real virá do RLS (Etapa 2) e deve ser removido ou substituído nessa etapa.
+---
 
-## Como rodar
+## 🎯 O problema
+
+Escalas de plantão em hospitais são montadas em planilhas ou papel. Isso gera:
+
+- Plantões descobertos (ninguém percebe que um turno ficou vazio)
+- Trocas informais por WhatsApp, sem registro nem aprovação
+- Conflito de horários descoberto só na hora do plantão
+
+O **Plantão+** centraliza o ciclo completo: montagem → publicação → negociação de troca → aprovação → escala oficial atualizada.
+
+---
+
+## 🧠 Decisões técnicas
+
+| Decisão | Motivo |
+|---------|--------|
+| **RBAC via contexto + RLS no banco** | O menu esconde rotas no front, mas a autorização real fica no Postgres (Row Level Security). Esconder no front é UX; bloquear no banco é segurança. |
+| **Roadmap embutido no código** | Cada módulo tem um campo `stage` (`src/lib/modules.ts`). Qualquer dev sabe, lendo o código, o que já funciona e o que é placeholder. |
+| **Placeholders honestos** | Nenhuma tela finge ter dados. Cards vazios dizem "disponível na Etapa X". Evita protótipo que parece pronto mas não é. |
+| **Acessibilidade como requisito, não extra** | Skip link, `aria-label`, `role="status"` com `aria-live`, foco visível global e respeito a `prefers-reduced-motion`. |
+| **Escala lida por letra, não só cor** | Chips mostram `D`, `N`, `F`, `Fé` junto da cor. Daltônicos conseguem ler a grade. |
+| **Mobile-first com bottom nav** | Profissional consulta plantão no corredor do hospital, no celular. |
+
+---
+
+## 🏗️ Arquitetura
+
+### Estrutura de pastas
+
+- **`src/components/`**
+  - `AppShell`, `AuthLayout`, `ShiftChip`, `StatCard` (componentes de layout e negócio)
+  - `ui/` (Design system: `Button`, `Card`, `Badge` — padrão shadcn/ui)
+- **`src/lib/`**
+  - `modules.ts` (Catálogo de módulos + etapa de ativação)
+  - `nav.ts` (Rotas por perfil + função `isPathAllowed()`)
+  - `role-context.tsx` (Contexto de papel: `admin` | `manager` | `professional`)
+- **`src/pages/`**
+  - Uma página por rota (ex: `Dashboard.tsx`, `Login.tsx`)
+- **`supabase/`**
+  - Migrations e schema (Etapa 2+)
+
+### Fluxo principal
+
+1. Admin cadastra instituição
+2. Gerente cria setores e convida profissionais
+3. Gerente monta e publica a escala mensal
+4. Profissional vê "Minha escala"
+5. Profissional propõe troca com colega
+6. Colega aceita a proposta
+7. Gerente aprova ou rejeita
+8. Escala oficial é atualizada
+9. Todos os envolvidos são notificados
+
+### Perfis e permissões
+
+| Perfil | Módulos acessíveis |
+|--------|--------------------|
+| **Administrador** | Instituições, Setores, Profissionais, Relatórios, Configurações |
+| **Gerência** | Escalas, Profissionais, Setores, Trocas, Aprovações, Relatórios |
+| **Profissional** | Minha escala, Escala dos colegas, Trocar plantão, Solicitações, Notificações, Perfil |
+
+---
+
+## 🗺️ Roadmap
+
+| Etapa | Entrega | Status |
+|-------|---------|--------|
+| 1 | Estrutura, navegação e todos os layouts | ✅ Concluído |
+| 2 | Supabase Auth + perfil real | 🔜 Próxima |
+| 3 | CRUDs: instituições, setores, profissionais | ⬜ |
+| 4 | Montagem e publicação de escalas | ⬜ |
+| 5 | Fluxo de trocas entre profissionais | ⬜ |
+| 6 | Aprovação pela gerência | ⬜ |
+| 7 | Notificações | ⬜ |
+| v2 | Relatórios e analytics | ⬜ |
+
+---
+
+## 🚀 Como rodar localmente
 
 ```bash
+git clone https://github.com/jobsonmedeiros/plantao-mais.git
+cd plantao-mais
 npm install
+cp .env.example .env    # preencha com suas chaves do Supabase
 npm run dev
-npm run typecheck
-```
-
-Abra o endereço mostrado pelo Vite (normalmente http://localhost:5173).
-
-## Estrutura
-
-```text
-src/
-  components/      Layout (AppShell), Logo, ShiftChip, StatCard, EmptyState, PageHeader, AuthLayout
-  components/ui/   Button, Card, Badge, Input, Label (estilo Shadcn/UI, escritos à mão)
-  lib/             nav.ts (menus por perfil), modules.ts (telas e etapas), role-context.tsx, utils.ts
-  pages/           Login, ForgotPassword, Dashboard, SchedulesPage, ModulePage, ModuleRoute, NotFound
-```
-
-## Decisões de design
-
-- Azul principal, branco de fundo, verde para conclusão, laranja para pendência, vermelho para alerta.
-- Fonte Atkinson Hyperlegible Next, desenhada para leitura clara, importante em telas de celular usadas em plantões noturnos.
-- Status e turnos sempre têm texto ou letra além da cor (D, N, F, Fé).
-- Navegação lateral no computador; barra inferior no celular, com "Mais" para os itens restantes.
-
-## Próximos passos
-
-- As migrações do banco (esquema, RLS, funções e grants) estão em `supabase/migrations/`.
-- Testes SQL de isolamento e fluxo de troca: `supabase/tests/01_isolamento_e_trocas.sql`. O banco ainda precisa ser validado em ambiente local antes de uso.
-- Para validar localmente, instale Docker e Supabase CLI, execute `supabase start` e `supabase db reset`, depois rode o teste SQL conforme `supabase/tests/CONCORRENCIA.md`.
-- Defina `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` em `.env` (veja `.env.example`). Nunca use `service_role` no navegador.
-- PWA (manifest, ícones e service worker) fica para quando houver backend.
