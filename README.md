@@ -1,4 +1,4 @@
-# 🏥 Plantão+
+# 🏥 [Plantão+](https://github.com/jobsonmedeiros/plantao-mais) · [Demo](https://plantao-mais-lime.vercel.app/)
 
 Plataforma SaaS para gestão de escalas de plantão hospitalar. Permite que hospitais, clínicas e UPAs montem escalas mensais, que profissionais proponham trocas entre si e que a gerência aprove as alterações antes de atualizar a escala oficial.
 
