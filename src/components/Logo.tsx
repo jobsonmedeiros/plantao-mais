@@ -7,7 +7,7 @@ export function Logo({ tone = "dark", className }: { tone?: "dark" | "light"; cl
         aria-hidden="true"
         className={cn(
           "flex h-9 w-9 items-center justify-center rounded-lg text-xl font-bold leading-none",
-          tone === "light" ? "bg-white text-navy" : "bg-brand text-white",
+          tone === "light" ? "logo-mark-light bg-white text-navy" : "bg-brand text-white",
         )}
       >
         +

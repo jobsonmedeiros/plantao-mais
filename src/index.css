@@ -84,6 +84,11 @@ html.dark .bg-white {
   background-color: rgb(var(--color-paper) / var(--tw-bg-opacity, 1));
 }
 
+html.dark .logo-mark-light {
+  background-color: #ffffff;
+  color: #143a66;
+}
+
 html.dark * {
   --tw-ring-offset-color: rgb(var(--color-page));
 }
