@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Logo } from "@/components/Logo";
 import { ShiftChip, shiftKinds } from "@/components/ShiftChip";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 export function AuthLayout({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
@@ -32,6 +33,14 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
           <Logo className="mb-8 md:hidden" />
           <h1 className="text-2xl font-bold text-ink">{title}</h1>
           <p className="mt-1 mb-6 text-base text-ink-soft">{subtitle}</p>
+          <div
+            role="status"
+            className="mb-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-5 text-amber-950"
+          >
+            {isSupabaseConfigured
+              ? "Autenticação conectada ao Supabase; os módulos operacionais continuam demonstrativos."
+              : "Modo demonstração: estes formulários não autenticam nem enviam e-mails."}
+          </div>
           {children}
         </div>
       </main>

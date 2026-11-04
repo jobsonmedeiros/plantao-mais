@@ -4,11 +4,12 @@ Plataforma SaaS multi-instituição para escalas e trocas de plantão de enferma
 
 ## Estado atual: Etapa 1 (fundação visual e navegação)
 
-Esta etapa entrega só a **estrutura**: identidade visual, navegação, telas e componentes reutilizáveis.
-Nada aqui lê, grava ou simula dados reais.
+Esta etapa entrega a **fundação visual**: identidade, navegação, telas e componentes reutilizáveis.
+Os dados apresentados nos módulos operacionais são fictícios e servem apenas para demonstrar a interface;
+as ações nessas telas não são persistidas nem alteram escalas oficiais.
 
-- Login e recuperação de senha: formulários sem autenticação. Avisam na tela que a Etapa 2 liga o Supabase Auth.
-- Dashboards distintos para Administrador, Gerência e Profissional. Valores aparecem como "—".
+- Login e recuperação de senha usam Supabase Auth quando as variáveis do projeto estão configuradas; sem configuração, funcionam apenas em modo de demonstração.
+- Dashboards, escalas, profissionais, trocas e aprovações exibem conteúdo fictício; um aviso identifica a demonstração e a ausência de persistência operacional.
 - Telas de escalas, profissionais, setores, trocas, aprovações, notificações e configurações, cada uma indicando em qual etapa passa a funcionar.
 - O seletor "Ver como" existe só para pré-visualizar os menus de cada perfil. Ele **não é controle de acesso**; a autorização real virá do RLS (Etapa 2) e deve ser removido ou substituído nessa etapa.
 

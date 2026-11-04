@@ -150,6 +150,13 @@ export function AppShell() {
         </header>
 
         <main id="conteudo" tabIndex={-1} className="flex-1 bg-surface px-4 py-6 pb-28 md:px-8 md:pb-10 print:bg-white print:p-0 print:m-0 print:overflow-visible">
+          <div
+            role="status"
+            className="mb-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-5 text-amber-950"
+          >
+            <strong>Ambiente de demonstração — Etapa 1.</strong>{" "}
+            Os dados operacionais são fictícios. As ações destas telas não são persistidas nem alteram uma escala oficial.
+          </div>
           <Outlet />
         </main>
       </div>
