@@ -12,7 +12,7 @@ export function Logo({ tone = "dark", className }: { tone?: "dark" | "light"; cl
       >
         +
       </span>
-      <span className={cn("text-xl font-bold tracking-tight", tone === "light" ? "text-white" : "text-navy")}>
+      <span className={cn("text-xl font-bold tracking-tight", tone === "light" ? "text-white" : "text-ink")}>
         Plantão+
       </span>
     </span>
