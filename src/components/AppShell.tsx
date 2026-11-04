@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bell, MoreHorizontal, X } from "lucide-react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { navByRole, type NavItem } from "@/lib/nav";
 import { roleLabels, useRole } from "@/lib/role-context";
 import { cn } from "@/lib/utils";
@@ -140,13 +141,16 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col print:w-full print:block">
         <header className="flex items-center justify-between border-b border-line bg-white px-4 py-3 md:justify-end md:px-8 print:hidden">
           <Logo className="md:hidden" />
-          <Link
-            to="/app/notificacoes"
-            aria-label="Notificações"
-            className="rounded-md p-2 text-ink-soft hover:bg-surface"
-          >
-            <Bell className="h-5 w-5" aria-hidden="true" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link
+              to="/app/notificacoes"
+              aria-label="Notificações"
+              className="rounded-md p-2 text-ink-soft hover:bg-surface"
+            >
+              <Bell className="h-5 w-5" aria-hidden="true" />
+            </Link>
+          </div>
         </header>
 
         <main id="conteudo" tabIndex={-1} className="flex-1 bg-surface px-4 py-6 pb-28 md:px-8 md:pb-10 print:bg-white print:p-0 print:m-0 print:overflow-visible">

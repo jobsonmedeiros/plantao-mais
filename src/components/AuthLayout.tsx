@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Logo } from "@/components/Logo";
 import { ShiftChip, shiftKinds } from "@/components/ShiftChip";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
 export function AuthLayout({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
@@ -28,7 +29,8 @@ export function AuthLayout({ title, subtitle, children }: { title: string; subti
         <p className="text-sm text-white/70">Para hospitais, clínicas e UPAs.</p>
       </aside>
 
-      <main className="flex items-center justify-center px-6 py-10">
+      <main className="relative flex items-center justify-center px-6 py-10">
+        <ThemeToggle className="absolute right-4 top-4 md:right-6 md:top-6" />
         <div className="w-full max-w-sm">
           <Logo className="mb-8 md:hidden" />
           <h1 className="text-2xl font-bold text-ink">{title}</h1>
