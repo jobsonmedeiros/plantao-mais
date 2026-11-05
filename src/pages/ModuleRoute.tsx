@@ -1,14 +1,16 @@
+import { lazy } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { isPathAllowed } from "@/lib/nav";
 import { modules } from "@/lib/modules";
 import { useRole } from "@/lib/role-context";
-import ModulePage from "@/pages/ModulePage";
-import InstitutionsPage from "@/pages/InstitutionsPage";
-import SchedulesPage from "@/pages/SchedulesPage";
-import ProfessionalsPage from "@/pages/ProfessionalsPage";
-import SwapsPage from "@/pages/SwapsPage";
-import ApprovalsPage from "@/pages/ApprovalsPage";
-import ProfilePage from "@/pages/ProfilePage";
+
+const ModulePage = lazy(() => import("@/pages/ModulePage"));
+const InstitutionsPage = lazy(() => import("@/pages/InstitutionsPage"));
+const SchedulesPage = lazy(() => import("@/pages/SchedulesPage"));
+const ProfessionalsPage = lazy(() => import("@/pages/ProfessionalsPage"));
+const SwapsPage = lazy(() => import("@/pages/SwapsPage"));
+const ApprovalsPage = lazy(() => import("@/pages/ApprovalsPage"));
+const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 
 // Esta checagem controla a navegação; a autorização dos dados continua no banco (RLS).
 export default function ModuleRoute() {

@@ -234,7 +234,15 @@ export function AppShell() {
             <strong>Ambiente de demonstração — Etapa 1.</strong>{" "}
             Os dados operacionais são fictícios. As ações destas telas não são persistidas nem alteram uma escala oficial.
           </div>
-          <Outlet />
+          <Suspense
+            fallback={
+              <div className="py-12 text-center text-sm font-semibold text-ink-soft" role="status" aria-live="polite">
+                Carregando página...
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 
