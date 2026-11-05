@@ -34,18 +34,26 @@ jobs:
         run: npm run build
 
       - name: Instalar cliente PostgreSQL
+        if: hashFiles('supabase/config.toml') != ''
         run: |
           sudo apt-get update
           sudo apt-get install --yes postgresql-client
 
+      - name: Informar ausência do backend Supabase
+        if: hashFiles('supabase/config.toml') == ''
+        run: echo "Backend Supabase ainda não está publicado nesta branch; validação SQL ignorada."
+
       - name: Iniciar Supabase local
         id: supabase
+        if: hashFiles('supabase/config.toml') != ''
         run: npx supabase start
 
       - name: Recriar banco e aplicar migrations
+        if: hashFiles('supabase/config.toml') != ''
         run: npx supabase db reset
 
       - name: Executar testes SQL
+        if: hashFiles('supabase/config.toml') != ''
         shell: bash
         run: |
           db_url="$(npx supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
