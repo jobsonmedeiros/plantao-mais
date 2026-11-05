@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
+import { MIN_PASSWORD_LENGTH, PASSWORD_REQUIREMENTS, validarSenha } from "@/lib/password";
 
 type DadosConvite = {
   email: string;
@@ -33,7 +34,7 @@ function isDadosConvite(value: unknown): value is DadosConvite {
 export default function AcceptInvitation() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { usuario, cadastrar, sair, recarregarContexto } = useAuth();
+  const { usuario, cadastrar, reenviarConfirmacao, sair, recarregarContexto } = useAuth();
 
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -43,6 +44,8 @@ export default function AcceptInvitation() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [processando, setProcessando] = useState(false);
   const [confirmacaoPendente, setConfirmacaoPendente] = useState(false);
+  const [reenviando, setReenviando] = useState(false);
+  const [mensagemReenvio, setMensagemReenvio] = useState<string | null>(null);
 
   useEffect(() => {
     let ativo = true;
@@ -83,6 +86,23 @@ export default function AcceptInvitation() {
     };
   }, [token]);
 
+  async function handleReenviarConfirmacao() {
+    if (!dados || !token) return;
+
+    setReenviando(true);
+    setMensagemReenvio(null);
+    const resultado = await reenviarConfirmacao(
+      dados.email,
+      `${window.location.origin}/convite/${token}`,
+    );
+    setReenviando(false);
+    setMensagemReenvio(
+      resultado.erro
+        ? resultado.erro
+        : "Se o endereço puder receber mensagens, enviaremos um novo link de confirmação.",
+    );
+  }
+
   async function aceitarConvite() {
     if (!token) {
       setErro("Token de convite não informado.");
@@ -108,8 +128,9 @@ export default function AcceptInvitation() {
     event.preventDefault();
     if (!dados) return;
 
-    if (senha.length < 6) {
-      setErro("A senha deve conter no mínimo 6 caracteres.");
+    const erroSenha = validarSenha(senha);
+    if (erroSenha) {
+      setErro(erroSenha);
       return;
     }
     if (senha !== confirmarSenha) {
@@ -177,6 +198,12 @@ export default function AcceptInvitation() {
           Enviamos uma mensagem para <strong>{dados.email}</strong>. Use o link enviado para confirmar o endereço e
           retornar a esta página para aceitar o convite.
         </p>
+        <Button type="button" variant="outline" className="mt-4 w-full" disabled={reenviando} onClick={handleReenviarConfirmacao}>
+          {reenviando ? "Enviando..." : "Reenviar confirmação de e-mail"}
+        </Button>
+        {mensagemReenvio && (
+          <p role="status" className="mt-3 text-sm text-ink-soft">{mensagemReenvio}</p>
+        )}
         <p className="mt-4 text-center text-sm">
           Já confirmou?{" "}
           <Link
@@ -271,12 +298,13 @@ export default function AcceptInvitation() {
                 id="senha"
                 type="password"
                 autoComplete="new-password"
-                minLength={6}
+                minLength={MIN_PASSWORD_LENGTH}
                 required
                 value={senha}
                 onChange={(event) => setSenha(event.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres`}
               />
+              <p className="mt-1 text-sm text-ink-soft">{PASSWORD_REQUIREMENTS}</p>
             </div>
             <div>
               <Label htmlFor="confirmarSenha">Confirme sua senha</Label>
@@ -284,7 +312,7 @@ export default function AcceptInvitation() {
                 id="confirmarSenha"
                 type="password"
                 autoComplete="new-password"
-                minLength={6}
+                minLength={MIN_PASSWORD_LENGTH}
                 required
                 value={confirmarSenha}
                 onChange={(event) => setConfirmarSenha(event.target.value)}

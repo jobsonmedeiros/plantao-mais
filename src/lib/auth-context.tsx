@@ -3,13 +3,16 @@ import {
   useCallback,
   useContext,
   useEffect,
+  lazy,
   useMemo,
   useRef,
+  Suspense,
   useState,
   type ReactNode,
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { traduzirErroAuth } from "@/lib/auth-errors";
 
 export type Papel = "platform_admin" | "institution_admin" | "manager" | "professional";
 
@@ -36,20 +39,22 @@ export type VinculoInstitucional = {
   setores: SetorVinculado[];
 };
 
-type ResultadoAuth = { erro?: string; confirmacaoPendente?: boolean };
+export type ResultadoAuth = {
+  erro?: string;
+  confirmacaoPendente?: boolean;
+  precisaConfirmarEmail?: boolean;
+};
 
-type ContextoAutenticacaoValor = {
+export type ContextoAutenticacaoValor = {
   usuario: User | null;
   sessao: Session | null;
   perfil: PerfilUsuario | null;
   vinculos: VinculoInstitucional[];
   instituicaoAtivaId: string | null;
   papelAtivo: Papel | null;
-  demoRole: Papel | null;
   carregando: boolean;
   erroCarregamento: string | null;
   definirInstituicaoAtiva: (instituicaoId: string) => void;
-  definirDemoRole: (role: Papel) => void;
   recarregarContexto: () => Promise<ResultadoAuth>;
   entrar: (email: string, senha: string) => Promise<ResultadoAuth>;
   cadastrar: (
@@ -58,121 +63,23 @@ type ContextoAutenticacaoValor = {
     nomeCompleto: string,
     emailRedirectTo?: string,
   ) => Promise<ResultadoAuth>;
+  reenviarConfirmacao: (email: string, emailRedirectTo?: string) => Promise<ResultadoAuth>;
   sair: () => Promise<ResultadoAuth>;
   recuperarSenha: (email: string) => Promise<ResultadoAuth>;
   atualizarSenha: (senha: string) => Promise<ResultadoAuth>;
 };
 
-const AuthContext = createContext<ContextoAutenticacaoValor | null>(null);
-const DEMO_ROLE_STORAGE_KEY = "plantao-mais-demo-role";
+export const AuthContext = createContext<ContextoAutenticacaoValor | null>(null);
 
-function getDemoRoleFromStorage(): Papel {
-  const valor = window.localStorage.getItem(DEMO_ROLE_STORAGE_KEY);
-  return valor === "platform_admin" || valor === "institution_admin" || valor === "manager" || valor === "professional"
-    ? valor
-    : "manager";
-}
-
-function createDemoUser(_role: Papel): User {
-  return {
-    id: "demo-user",
-    email: "demo@plantao-mais.local",
-    app_metadata: { provider: "demo" },
-    user_metadata: { full_name: "Modo demonstração" },
-    aud: "authenticated",
-    created_at: new Date().toISOString(),
-    role: "authenticated",
-    confirmed_at: new Date().toISOString(),
-    last_sign_in_at: new Date().toISOString(),
-    email_confirmed_at: new Date().toISOString(),
-    phone: "",
-    identities: [],
-    factors: [],
-  } as unknown as User;
-}
-
-function createDemoContext(role: Papel) {
-  const ehPlataforma = role === "platform_admin";
-  const nomeRole = {
-    platform_admin: "Administração da plataforma",
-    institution_admin: "Administração da instituição",
-    manager: "Gerência",
-    professional: "Profissional",
-  }[role];
-
-  const perfil: PerfilUsuario = {
-    id: "demo-user",
-    email: "demo@plantao-mais.local",
-    nomeCompleto: `Demonstração • ${nomeRole}`,
-    telefone: "",
-    ePlatformAdmin: ehPlataforma,
-  };
-
-  const vinculos: VinculoInstitucional[] = ehPlataforma
-    ? []
-    : [
-        {
-          id: "demo-membership",
-          institutionId: "demo-institution",
-          institutionName: "Hospital Universitário Demo",
-          role: role === "institution_admin" ? "institution_admin" : role === "manager" ? "manager" : "professional",
-          setores: [
-            {
-              id: "demo-sector",
-              nome: "UTI - Adulto",
-              cargo: role === "professional" ? "Enfermeiro" : "Coordenador",
-              eGerente: role === "manager" || role === "institution_admin",
-            },
-          ],
-        },
-      ];
-
-  return { perfil, vinculos };
-}
-
-function mensagemErro(error: unknown) {
-  if (!(error instanceof Error)) return "Não foi possível concluir a operação.";
-
-  const mensagens: Record<string, string> = {
-    "Invalid login credentials": "E-mail ou senha incorretos.",
-    "Email not confirmed": "Confirme seu e-mail antes de entrar.",
-    "User already registered": "Este e-mail já possui cadastro. Entre com sua conta.",
-    "Password should be at least 6 characters":
-      "A senha deve conter no mínimo 6 caracteres.",
-  };
-
-  return mensagens[error.message] ?? error.message;
-}
-
-export function AuthProvider({ children }: { children: ReactNode }) {
+function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<User | null>(null);
   const [sessao, setSessao] = useState<Session | null>(null);
   const [perfil, setPerfil] = useState<PerfilUsuario | null>(null);
   const [vinculos, setVinculos] = useState<VinculoInstitucional[]>([]);
   const [instituicaoAtivaId, setInstituicaoAtivaId] = useState<string | null>(null);
-  const [demoRole, setDemoRole] = useState<Papel>(() => getDemoRoleFromStorage());
   const [carregando, setCarregando] = useState(true);
   const [erroCarregamento, setErroCarregamento] = useState<string | null>(null);
   const versaoCarregamento = useRef(0);
-
-  const aplicarDemoMode = useCallback((role: Papel) => {
-    const { perfil: perfilDemo, vinculos: vinculosDemo } = createDemoContext(role);
-    setUsuario(createDemoUser(role));
-    setSessao(null);
-    setPerfil(perfilDemo);
-    setVinculos(vinculosDemo);
-    setInstituicaoAtivaId(vinculosDemo[0]?.institutionId ?? null);
-    setErroCarregamento(null);
-    setCarregando(false);
-    window.localStorage.setItem(DEMO_ROLE_STORAGE_KEY, role);
-  }, []);
-
-  const definirDemoRole = useCallback((role: Papel) => {
-    setDemoRole(role);
-    if (!isSupabaseConfigured) {
-      aplicarDemoMode(role);
-    }
-  }, [aplicarDemoMode]);
 
   const carregarDadosUsuario = useCallback(async (user: User, versao?: number): Promise<string | null> => {
     try {
@@ -270,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPerfil(null);
       setVinculos([]);
       setInstituicaoAtivaId(null);
-      const mensagem = `Não foi possível carregar seu acesso: ${mensagemErro(error)}`;
+      const mensagem = `Não foi possível carregar seu acesso: ${traduzirErroAuth(error)}`;
       setErroCarregamento(mensagem);
       return mensagem;
     }
@@ -278,9 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
-      const roleInicial = getDemoRoleFromStorage();
-      setDemoRole(roleInicial);
-      aplicarDemoMode(roleInicial);
+      setCarregando(false);
       return;
     }
 
@@ -322,14 +227,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void supabase.auth.getSession().then(({ data, error }) => {
       if (!ativo) return;
       if (error) {
-        setErroCarregamento(`Não foi possível verificar sua sessão: ${mensagemErro(error)}`);
+        setErroCarregamento(`Não foi possível verificar sua sessão: ${traduzirErroAuth(error)}`);
         setCarregando(false);
         return;
       }
       processarSessao(data.session);
     }).catch((error: unknown) => {
       if (!ativo) return;
-      setErroCarregamento(`Não foi possível verificar sua sessão: ${mensagemErro(error)}`);
+      setErroCarregamento(`Não foi possível verificar sua sessão: ${traduzirErroAuth(error)}`);
       setCarregando(false);
     });
 
@@ -337,30 +242,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ativo = false;
       subscription.unsubscribe();
     };
-  }, [aplicarDemoMode, carregarDadosUsuario]);
+  }, [carregarDadosUsuario]);
 
   const vinculoAtivo = useMemo(
     () => vinculos.find((vinculo) => vinculo.institutionId === instituicaoAtivaId) ?? null,
     [instituicaoAtivaId, vinculos],
   );
-  const papelAtivo: Papel | null = !isSupabaseConfigured
-    ? demoRole
-    : perfil?.ePlatformAdmin
-      ? "platform_admin"
-      : vinculoAtivo?.role ?? null;
+  const papelAtivo: Papel | null = perfil?.ePlatformAdmin
+    ? "platform_admin"
+    : vinculoAtivo?.role ?? null;
 
   const entrar = async (email: string, senha: string): Promise<ResultadoAuth> => {
-    if (!isSupabaseConfigured) {
-      const proximoRole = demoRole ?? "manager";
-      aplicarDemoMode(proximoRole);
-      return {};
-    }
+    if (!isSupabaseConfigured) return { erro: "A autenticação está indisponível: Supabase não configurado." };
 
     try {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha });
-      return error ? { erro: mensagemErro(error) } : {};
+      if (!error) return {};
+      const precisaConfirmarEmail = error.code === "email_not_confirmed" || error.message === "Email not confirmed";
+      return { erro: traduzirErroAuth(error), precisaConfirmarEmail };
     } catch (error) {
-      return { erro: mensagemErro(error) };
+      return { erro: traduzirErroAuth(error) };
     }
   };
 
@@ -382,10 +283,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       });
 
-      if (error) return { erro: mensagemErro(error) };
+      if (error) return { erro: traduzirErroAuth(error) };
       return { confirmacaoPendente: !data.session };
     } catch (error) {
-      return { erro: mensagemErro(error) };
+      return { erro: traduzirErroAuth(error) };
+    }
+  };
+
+  const reenviarConfirmacao = async (
+    email: string,
+    emailRedirectTo = `${window.location.origin}/app`,
+  ): Promise<ResultadoAuth> => {
+    if (!isSupabaseConfigured) return { erro: "O reenvio está indisponível: Supabase não configurado." };
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: email.trim(),
+        options: { emailRedirectTo },
+      });
+      return error ? { erro: traduzirErroAuth(error) } : {};
+    } catch (error) {
+      return { erro: traduzirErroAuth(error) };
     }
   };
 
@@ -402,9 +321,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     try {
       const { error } = await supabase.auth.signOut();
-      return error ? { erro: mensagemErro(error) } : {};
+      return error ? { erro: traduzirErroAuth(error) } : {};
     } catch (error) {
-      return { erro: mensagemErro(error) };
+      return { erro: traduzirErroAuth(error) };
     }
   };
 
@@ -415,9 +334,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/redefinir-senha`,
       });
-      return error ? { erro: mensagemErro(error) } : {};
+      return error ? { erro: traduzirErroAuth(error) } : {};
     } catch (error) {
-      return { erro: mensagemErro(error) };
+      return { erro: traduzirErroAuth(error) };
     }
   };
 
@@ -426,15 +345,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const { data: sessaoAtual, error: erroSessao } = await supabase.auth.getSession();
-      if (erroSessao) return { erro: mensagemErro(erroSessao) };
+      if (erroSessao) return { erro: traduzirErroAuth(erroSessao) };
       if (!sessaoAtual.session) {
         return { erro: "O link de redefinição é inválido ou expirou. Solicite um novo link." };
       }
 
       const { error } = await supabase.auth.updateUser({ password: senha });
-      return error ? { erro: mensagemErro(error) } : {};
+      return error ? { erro: traduzirErroAuth(error) } : {};
     } catch (error) {
-      return { erro: mensagemErro(error) };
+      return { erro: traduzirErroAuth(error) };
     }
   };
 
@@ -442,7 +361,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let versao: number | null = null;
     try {
       const { data, error } = await supabase.auth.getSession();
-      if (error) return { erro: mensagemErro(error) };
+      if (error) return { erro: traduzirErroAuth(error) };
       if (!data.session) return { erro: "Sua sessão expirou. Entre novamente para continuar." };
 
       versao = ++versaoCarregamento.current;
@@ -452,7 +371,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const erro = await carregarDadosUsuario(data.session.user, versao);
       return erro ? { erro } : {};
     } catch (error) {
-      const mensagem = mensagemErro(error);
+      const mensagem = traduzirErroAuth(error);
       setErroCarregamento(`Não foi possível atualizar seu acesso: ${mensagem}`);
       return { erro: mensagem };
     } finally {
@@ -475,14 +394,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         vinculos,
         instituicaoAtivaId,
         papelAtivo,
-        demoRole,
         carregando,
         erroCarregamento,
         definirInstituicaoAtiva,
-        definirDemoRole,
         recarregarContexto,
         entrar,
         cadastrar,
+        reenviarConfirmacao,
         sair,
         recuperarSenha,
         atualizarSenha,
@@ -491,6 +409,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
+}
+
+const DemoAuthProvider = import.meta.env.DEV
+  ? lazy(() => import("@/lib/demo/auth-provider").then((modulo) => ({ default: modulo.DemoAuthProvider })))
+  : null;
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  if (import.meta.env.DEV && !isSupabaseConfigured && DemoAuthProvider) {
+    return (
+      <Suspense fallback={<div role="status">Carregando o ambiente de demonstração...</div>}>
+        <DemoAuthProvider>{children}</DemoAuthProvider>
+      </Suspense>
+    );
+  }
+
+  return <SupabaseAuthProvider>{children}</SupabaseAuthProvider>;
 }
 
 export function useAuth() {

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
+import { MIN_PASSWORD_LENGTH, PASSWORD_REQUIREMENTS, validarSenha } from "@/lib/password";
 
 export default function Register() {
   const [nome, setNome] = useState("");
@@ -13,8 +14,10 @@ export default function Register() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [confirmacaoPendente, setConfirmacaoPendente] = useState(false);
+  const [reenviando, setReenviando] = useState(false);
+  const [mensagemReenvio, setMensagemReenvio] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const { cadastrar, usuario, carregando: carregandoSessao } = useAuth();
+  const { cadastrar, reenviarConfirmacao, usuario, carregando: carregandoSessao } = useAuth();
   const navigate = useNavigate();
 
   if (!carregandoSessao && usuario) return <Navigate to="/app" replace />;
@@ -23,8 +26,9 @@ export default function Register() {
     event.preventDefault();
     setErro(null);
 
-    if (senha.length < 6) {
-      setErro("A senha deve conter no mínimo 6 caracteres.");
+    const erroSenha = validarSenha(senha);
+    if (erroSenha) {
+      setErro(erroSenha);
       return;
     }
     if (senha !== confirmarSenha) {
@@ -49,6 +53,18 @@ export default function Register() {
     }
   }
 
+  async function handleReenviarConfirmacao() {
+    setReenviando(true);
+    setMensagemReenvio(null);
+    const resultado = await reenviarConfirmacao(email);
+    setReenviando(false);
+    setMensagemReenvio(
+      resultado.erro
+        ? resultado.erro
+        : "Se o endereço puder receber mensagens, enviaremos um novo link de confirmação.",
+    );
+  }
+
   return (
     <AuthLayout
       title={confirmacaoPendente ? "Confirme seu e-mail" : "Criar cadastro"}
@@ -64,6 +80,12 @@ export default function Register() {
             Se o endereço puder receber cadastro, você receberá uma mensagem em <strong>{email}</strong>. Confirme o
             e-mail para continuar. O cadastro não cria vínculo institucional.
           </p>
+          <Button type="button" variant="outline" className="w-full" disabled={reenviando} onClick={handleReenviarConfirmacao}>
+            {reenviando ? "Enviando..." : "Reenviar confirmação de e-mail"}
+          </Button>
+          {mensagemReenvio && (
+            <p role="status" className="text-sm text-ink-soft">{mensagemReenvio}</p>
+          )}
           <Link to="/login" className="block text-center text-sm font-semibold text-brand-dark underline">
             Voltar para entrar
           </Link>
@@ -102,11 +124,12 @@ export default function Register() {
               name="new-password"
               type="password"
               autoComplete="new-password"
-              minLength={6}
+              minLength={MIN_PASSWORD_LENGTH}
               required
               value={senha}
               onChange={(event) => setSenha(event.target.value)}
             />
+            <p className="mt-1 text-sm text-ink-soft">{PASSWORD_REQUIREMENTS}</p>
           </div>
           <div>
             <Label htmlFor="confirmarSenha">Confirmar senha</Label>
@@ -115,7 +138,7 @@ export default function Register() {
               name="confirm-password"
               type="password"
               autoComplete="new-password"
-              minLength={6}
+              minLength={MIN_PASSWORD_LENGTH}
               required
               value={confirmarSenha}
               onChange={(event) => setConfirmarSenha(event.target.value)}

@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/lib/auth-context";
 import { roleLabels, useRole } from "@/lib/role-context";
 import { supabase } from "@/lib/supabase";
+import { MIN_PASSWORD_LENGTH, PASSWORD_REQUIREMENTS, validarSenha } from "@/lib/password";
 
 export default function ProfilePage() {
   const { perfil, vinculos, recarregarContexto, atualizarSenha } = useAuth();
@@ -59,8 +60,9 @@ export default function ProfilePage() {
     setMensagemSenha(null);
     setErroSenha(null);
 
-    if (senha.length < 6) {
-      setErroSenha("A senha deve conter no mínimo 6 caracteres.");
+    const erroValidacaoSenha = validarSenha(senha);
+    if (erroValidacaoSenha) {
+      setErroSenha(erroValidacaoSenha);
       return;
     }
     if (senha !== confirmacaoSenha) {
@@ -147,11 +149,12 @@ export default function ProfilePage() {
                   id="perfil-senha"
                   type="password"
                   autoComplete="new-password"
-                  minLength={6}
+                  minLength={MIN_PASSWORD_LENGTH}
                   required
                   value={senha}
                   onChange={(event) => setSenha(event.target.value)}
                 />
+                <p className="mt-1 text-sm text-ink-soft">{PASSWORD_REQUIREMENTS}</p>
               </div>
               <div>
                 <Label htmlFor="perfil-confirmar-senha">Confirmar nova senha</Label>
@@ -159,7 +162,7 @@ export default function ProfilePage() {
                   id="perfil-confirmar-senha"
                   type="password"
                   autoComplete="new-password"
-                  minLength={6}
+                  minLength={MIN_PASSWORD_LENGTH}
                   required
                   value={confirmacaoSenha}
                   onChange={(event) => setConfirmacaoSenha(event.target.value)}

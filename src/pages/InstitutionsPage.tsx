@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 type Institution = {
   id: string;
@@ -61,6 +61,13 @@ export default function InstitutionsPage() {
   const loadInstitutions = useCallback(async () => {
     setLoading(true);
     setError(null);
+    if (!isSupabaseConfigured) {
+      setInstitutions(null);
+      setError("Supabase não está configurado neste ambiente. Configure a URL e a chave pública do projeto no Vercel e publique novamente.");
+      setLoading(false);
+      return;
+    }
+
     const { data, error: queryError } = await supabase
       .from("institutions")
       .select("id, name, cnpj, timezone, status")
@@ -81,6 +88,11 @@ export default function InstitutionsPage() {
 
   async function createInstitution(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!isSupabaseConfigured) {
+      setError("Supabase não está configurado neste ambiente. Configure a URL e a chave pública do projeto no Vercel e publique novamente.");
+      return;
+    }
+
     const form = event.currentTarget;
     const values = new FormData(form);
     setBusy(true);
@@ -185,7 +197,7 @@ export default function InstitutionsPage() {
                 <Label htmlFor="institution-admin-email">E-mail do administrador</Label>
                 <Input id="institution-admin-email" name="adminEmail" type="email" autoComplete="email" required />
               </div>
-              <Button type="submit" className="w-full" disabled={busy}>
+              <Button type="submit" className="w-full" disabled={busy || !isSupabaseConfigured}>
                 {busy ? "Cadastrando…" : "Cadastrar e gerar convite"}
               </Button>
             </form>

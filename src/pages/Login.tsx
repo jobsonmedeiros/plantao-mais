@@ -1,27 +1,28 @@
-import { useState, type FormEvent } from "react";
+import { lazy, Suspense, useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "@/components/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth, type Papel } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth-context";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
-const opcoesPerfilDemo: { value: Papel; label: string }[] = [
-  { value: "platform_admin", label: "Administração da plataforma" },
-  { value: "institution_admin", label: "Administração da instituição" },
-  { value: "manager", label: "Gerência" },
-  { value: "professional", label: "Profissional" },
-];
+const DemoLoginRoleSelector = import.meta.env.DEV
+  ? lazy(() => import("@/lib/demo/auth-provider").then((modulo) => ({ default: modulo.DemoLoginRoleSelector })))
+  : null;
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [mensagemErro, setMensagemErro] = useState<string | null>(null);
-  const { entrar, usuario, carregando: carregandoSessao, demoRole, definirDemoRole } = useAuth();
+  const [podeReenviarConfirmacao, setPodeReenviarConfirmacao] = useState(false);
+  const [reenviando, setReenviando] = useState(false);
+  const [mensagemReenvio, setMensagemReenvio] = useState<string | null>(null);
+  const { entrar, reenviarConfirmacao, usuario, carregando: carregandoSessao } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const modoDemo = import.meta.env.DEV && !isSupabaseConfigured;
 
   if (!carregandoSessao && usuario) return <Navigate to="/app" replace />;
 
@@ -29,11 +30,14 @@ export default function Login() {
     e.preventDefault();
     setCarregando(true);
     setMensagemErro(null);
+    setPodeReenviarConfirmacao(false);
+    setMensagemReenvio(null);
 
     try {
-      const { erro } = await entrar(email, senha);
-      if (erro) {
-        setMensagemErro(erro);
+      const resultado = await entrar(email, senha);
+      if (resultado.erro) {
+        setMensagemErro(resultado.erro);
+        setPodeReenviarConfirmacao(Boolean(resultado.precisaConfirmarEmail));
       } else {
         const redirect = new URLSearchParams(location.search).get("redirect");
         const destino = redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/app";
@@ -46,24 +50,29 @@ export default function Login() {
     }
   }
 
+  async function handleReenviarConfirmacao() {
+    setReenviando(true);
+    setMensagemReenvio(null);
+    const resultado = await reenviarConfirmacao(email);
+    setReenviando(false);
+    setMensagemReenvio(
+      resultado.erro
+        ? resultado.erro
+        : "Se o endereço puder receber mensagens, enviaremos um novo link de confirmação.",
+    );
+  }
+
   return (
     <AuthLayout title="Entrar no Plantão+" subtitle="Use o e-mail e a senha da sua conta.">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {!isSupabaseConfigured && (
-          <div className="rounded-md border border-brand/30 bg-brand-tint p-3">
-            <Label htmlFor="perfil-demo">Perfil em demonstração</Label>
-            <select
-              id="perfil-demo"
-              value={demoRole ?? "manager"}
-              onChange={(event) => definirDemoRole(event.target.value as Papel)}
-              className="mt-2 w-full rounded-md border border-line bg-white px-3 py-2 text-sm font-medium text-ink shadow-sm"
-            >
-              {opcoesPerfilDemo.map((opcao) => (
-                <option key={opcao.value} value={opcao.value}>
-                  {opcao.label}
-                </option>
-              ))}
-            </select>
+        {modoDemo && DemoLoginRoleSelector && (
+          <Suspense fallback={<p role="status">Carregando demonstração...</p>}>
+            <DemoLoginRoleSelector />
+          </Suspense>
+        )}
+        {!isSupabaseConfigured && !import.meta.env.DEV && (
+          <div role="alert" className="rounded-md bg-danger-tint p-3 text-sm font-medium text-danger-dark">
+            Autenticação indisponível: este ambiente não está conectado ao Supabase.
           </div>
         )}
         <div>
@@ -99,14 +108,17 @@ export default function Login() {
           </div>
         )}
 
-        {!isSupabaseConfigured && (
-          <div role="alert" className="rounded-md border border-brand/30 bg-brand-tint p-3 text-sm font-medium text-brand-dark">
-            Modo demonstração ativo: você pode alternar entre perfis e navegar como administrador, gerência ou profissional.
+        {podeReenviarConfirmacao && (
+          <div className="space-y-2">
+            <Button type="button" variant="outline" className="w-full" disabled={reenviando} onClick={handleReenviarConfirmacao}>
+              {reenviando ? "Enviando..." : "Reenviar confirmação de e-mail"}
+            </Button>
+            {mensagemReenvio && <p role="status" className="text-sm text-ink-soft">{mensagemReenvio}</p>}
           </div>
         )}
 
         <Button type="submit" className="w-full" disabled={carregando}>
-          {carregando ? "Entrando..." : isSupabaseConfigured ? "Entrar" : `Entrar como ${opcoesPerfilDemo.find((opcao) => opcao.value === demoRole)?.label ?? "Gerência"}`}
+          {carregando ? "Entrando..." : modoDemo ? "Entrar na demonstração" : "Entrar"}
         </Button>
 
         <p className="text-center text-sm">

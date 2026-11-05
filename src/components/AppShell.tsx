@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Bell, LogOut, MoreHorizontal, UserRound, X } from "lucide-react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useAuth, type Papel } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth-context";
 import { navByRole, type NavItem } from "@/lib/nav";
 import { roleLabels, useRole } from "@/lib/role-context";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+
+const DemoAppRoleSelector = import.meta.env.DEV
+  ? lazy(() => import("@/lib/demo/auth-provider").then((modulo) => ({ default: modulo.DemoAppRoleSelector })))
+  : null;
 
 function SideLink({ item }: { item: NavItem }) {
   const Icon = item.icon;
@@ -120,8 +124,6 @@ export function AppShell() {
     vinculos,
     instituicaoAtivaId,
     definirInstituicaoAtiva,
-    demoRole,
-    definirDemoRole,
     sair,
   } = useAuth();
   const [erroSaida, setErroSaida] = useState<string | null>(null);
@@ -167,21 +169,10 @@ export function AppShell() {
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-white px-4 py-3 md:px-8 print:hidden">
           <Logo className="md:hidden" />
           <div className="ml-auto flex min-w-0 items-center gap-3">
-            {!isSupabaseConfigured && (
-              <label className="flex min-w-0 items-center gap-2 text-sm text-ink-soft">
-                <span className="hidden sm:inline">Perfil</span>
-                <select
-                  aria-label="Perfil em demonstração"
-                  value={demoRole ?? "manager"}
-                  onChange={(event) => definirDemoRole(event.target.value as Papel)}
-                  className="max-w-[10rem] rounded-md border border-line bg-white px-2 py-2 text-sm font-semibold text-ink sm:max-w-[14rem]"
-                >
-                  <option value="platform_admin">Administração da plataforma</option>
-                  <option value="institution_admin">Administração da instituição</option>
-                  <option value="manager">Gerência</option>
-                  <option value="professional">Profissional</option>
-                </select>
-              </label>
+            {import.meta.env.DEV && !isSupabaseConfigured && DemoAppRoleSelector && (
+              <Suspense fallback={null}>
+                <DemoAppRoleSelector />
+              </Suspense>
             )}
             {vinculos.length > 1 && instituicaoAtivaId && (
               <label className="flex min-w-0 items-center gap-2 text-sm text-ink-soft">

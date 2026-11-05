@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
+import { MIN_PASSWORD_LENGTH, PASSWORD_REQUIREMENTS, validarSenha } from "@/lib/password";
 
 export default function ResetPassword() {
   const [senha, setSenha] = useState("");
@@ -18,8 +19,9 @@ export default function ResetPassword() {
     event.preventDefault();
     setErro(null);
 
-    if (senha.length < 6) {
-      setErro("A senha deve conter no mínimo 6 caracteres.");
+    const erroSenha = validarSenha(senha);
+    if (erroSenha) {
+      setErro(erroSenha);
       return;
     }
     if (senha !== confirmarSenha) {
@@ -66,11 +68,12 @@ export default function ResetPassword() {
               id="senha"
               type="password"
               autoComplete="new-password"
-              minLength={6}
+              minLength={MIN_PASSWORD_LENGTH}
               required
               value={senha}
               onChange={(event) => setSenha(event.target.value)}
             />
+            <p className="mt-1 text-sm text-ink-soft">{PASSWORD_REQUIREMENTS}</p>
           </div>
           <div>
             <Label htmlFor="confirmarSenha">Confirmar nova senha</Label>
@@ -78,7 +81,7 @@ export default function ResetPassword() {
               id="confirmarSenha"
               type="password"
               autoComplete="new-password"
-              minLength={6}
+              minLength={MIN_PASSWORD_LENGTH}
               required
               value={confirmarSenha}
               onChange={(event) => setConfirmarSenha(event.target.value)}
