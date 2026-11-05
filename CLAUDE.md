@@ -60,12 +60,15 @@ update public.profiles set is_platform_admin = true where email = '...';
 
 ---
 
-## 2. Achados — estado atual do repositório
+## 2. Achados — diagnóstico e estado atual
 
 Levantamento feito sobre o código em `src/` (4.813 linhas TS/TSX), `supabase/migrations/`
-(1.394 linhas SQL), `supabase/tests/` e arquivos de configuração.
+(1.394 linhas SQL), `supabase/tests/` e arquivos de configuração. As medições da §2.1
+foram revisadas em 5 de novembro de 2026.
 
 ### 2.1 Linha de base (baseline)
+
+Medições atuais revisadas em 5 de novembro de 2026:
 
 | Artefato | Situação medida |
 |---|---|
@@ -73,14 +76,15 @@ Levantamento feito sobre o código em `src/` (4.813 linhas TS/TSX), `supabase/mi
 | `supabase/migrations/0002_security.sql` | 263 linhas — helpers de autorização, gatilho de auditoria, 17 políticas RLS |
 | `supabase/migrations/0003_functions.sql` | 771 linhas — 23 funções de negócio |
 | `supabase/migrations/0004_grants.sql` | 62 linhas — `revoke all` + concessões explícitas + Realtime |
-| `supabase/tests/01_isolamento_e_trocas.sql` | 333 linhas, **49 verificações** (`_t_check`), transação + `ROLLBACK` |
+| `supabase/tests/01_isolamento_e_trocas.sql` | 333 linhas, 49 chamadas possíveis a `_t_check`; na execução registrada, 35 resultados passaram e 0 falharam; transação + `ROLLBACK` |
 | `supabase/tests/CONCORRENCIA.md` | Guia **manual** de teste de concorrência (não automatizado) |
 | `npm run typecheck` | **Passa** (0 erros) com `strict: true` |
-| Cobertura de testes de frontend | **0%** — nenhum Vitest/Jest, nenhuma Testing Library |
+| Testes de frontend | 6 testes passam; cobertura global ainda não medida |
 | Lint / formatação | **Ausente** — sem ESLint, sem Prettier |
-| Integração contínua | **Ausente** — sem `.github/workflows` |
+| Integração contínua | `.github/workflows/ci.yml` configurado; execução no commit `dcbf75e` passou; proteção de merge da `main` desabilitada |
 | Tipos gerados do banco | **Ausente** — sem `database.types.ts` |
-| Working tree do git | **Sujo** — 5 arquivos com modificação não commitada |
+| Linha de base do git | Commitada e publicada na `main` |
+| Hook de segredos | Pendente — não há pre-commit hook com `gitleaks` |
 
 ### 2.2 O achado estrutural: duas realidades divergentes
 
@@ -89,33 +93,34 @@ O backend está implementado e é de boa qualidade. O frontend **não está inte
 | Camada | Estado real |
 |---|---|
 | Banco de dados | Etapas 2–7 implementadas (esquema, RLS, funções, grants) |
-| Frontend | **4 chamadas ao backend** no total: `get_invitation`, `accept_invitation`, `create_institution`, `update profiles` |
-| Escalas | **Dados fictícios no arquivo** — grade "Novembro 2026 / Hospital Santa Maria" fixa em `SchedulesPage.tsx` |
-| Profissionais | **8 profissionais fictícios** em `ProfessionalsPage.tsx`; convite apenas altera `useState` |
-| Trocas | **Mural fictício** em `SwapsPage.tsx` (`muralInicial`) |
-| Aprovações | **Fictício** em `ApprovalsPage.tsx` |
+| Frontend | Autenticação e instituições integradas; fluxos operacionais ainda não consomem o backend |
+| Escalas, profissionais, trocas e aprovações | Em construção; ainda sem integração operacional com o backend |
 | Dashboard | Indicadores descritivos, **sem números** — correto, mas não entrega valor |
 | Notificações | Função `mark_notifications_read` concedida; **tela não existe**, sino sem contador, Realtime não assinado |
 | Setores / Configurações | **Tela não existe** — só placeholder `ModulePage` |
 | RPCs prontas e **nunca chamadas** | `create_invitation`, `create_schedule`, `upsert_shift`, `remove_shift`, `coverage_gaps`, `publish_schedule`, `create_swap_request`, `propose_swap`, `respond_swap_proposal`, `cancel_swap_request`, `decide_swap`, `set_membership_status`, `set_sector_member_status`, `mark_notifications_read`, `send_shift_reminders` |
 
-**Consequência:** o produto parece pronto em demonstração e não é. Isso viola R-§0.3 e
-contradiz o `README.md` atual, que declara a Etapa 1 concluída e a Etapa 2 como "próxima".
+**Consequência:** o backend está mais avançado que o frontend. As telas sem integração
+operacional devem informar essa limitação, conforme R-§0.3 e o estado atual documentado
+no `README.md`.
 
 ---
 
 ## 3. Registro de defeitos priorizados
 
+Os achados abaixo registram o diagnóstico que originou este plano e as correções exigidas;
+um achado não implica que ainda esteja aberto. O progresso atual é acompanhado pelo
+roadmap do [`README.md`](./README.md) e pelos critérios da §7.
+
 **Severidade:** `S1` bloqueia uso real / risco de segurança · `S2` dívida grave / bloqueia escalabilidade · `S3` qualidade e manutenibilidade.
-**Status:** `Aberto` · `Em correção` · `Corrigido` · `Aceito (não faremos)`.
 
 ### 3.1 Segurança e operação — fase 1
 
 | ID | Sev | Achado | Evidência | Correção exigida | Critério de aceite |
 |---|---|---|---|---|---|
-| SEC-01 | S1 | `.env` com anon key real no diretório de trabalho e working tree sujo com 5 arquivos modificados não commitados | `git status --short` → `MM src/components/AppShell.tsx`, `MM src/lib/auth-context.tsx`, `MM src/pages/Login.tsx`, `M src/pages/Dashboard.tsx`, `M src/pages/InstitutionsPage.tsx` | Commitar o estado atual numa branch `chore/baseline`; instalar `gitleaks` ou `git-secrets` em pre-commit hook; documentar no README que `.env*` nunca é versionado | `git status` limpo; hook bloqueia commit com padrão de chave; `.gitignore` cobre `.env.local` |
+| SEC-01 | S1 | A linha de base está versionada; falta proteção pré-commit contra segredos | Commits da linha de base publicados na `main`; ainda não há hook `gitleaks`; `.env*` está documentado como não versionado | Instalar `gitleaks` ou `git-secrets` em pre-commit hook | Working tree limpo após commit; hook bloqueia commit com padrão de chave; `.gitignore` cobre `.env.local` |
 | SEC-02 | S1 | Política de senha fraca: mínimo **6 caracteres**, sem exigência de composição | `supabase/config.toml:183` `minimum_password_length = 6`; `:184` `password_requirements = ""` | Elevar para **10** caracteres e `password_requirements = "lower_upper_letters_digits"` | Config atualizado em `config.toml`; cadastro com senha fraca é rejeitado no teste manual |
-| SEC-03 | S1 | Confirmação hospedada e recuperação de senha verificadas; uma chamada automatizada isolada retornou URL localhost, divergindo do fluxo real confirmado pelo responsável | Auth settings: `mailer_autoconfirm = false`; responsável confirmou que recebeu o e-mail de recuperação, redefiniu a senha e retornou ao portal Vercel; signup local exige confirmação e preserva o redirect de convite | Manter confirmação obrigatória e monitorar redirects se o problema reaparecer | Auth hospedado exige confirmação; e-mail chega; recuperação retorna ao portal Vercel; confirmação e convite testados localmente; telas oferecem reenvio |
+| SEC-03 | S1 | Confirmação hospedada e recuperação foram verificadas; uma chamada automatizada isolada retornou URL `localhost`, divergência não reproduzida no teste manual e de causa não determinada | Auth público: `mailer_autoconfirm = false`; recuperação manual retornou à aplicação Vercel; signup local exige confirmação e preserva o redirect de convite | Manter confirmação obrigatória e registrar a divergência automatizada sem inferir falha no fluxo manual | Auth hospedado exige confirmação; recuperação retorna à aplicação; confirmação e convite testados localmente; telas oferecem reenvio |
 | SEC-04 | S2 | Modo demonstração vaza para o código de produção: `demoRole` e `definirDemoRole` vivem no contexto público e `createDemoUser` fabrica um `User` falso | `src/lib/auth-context.tsx` (`createDemoUser`, `createDemoContext`, `aplicarDemoMode`, `demoRole`) | Isolar em `src/lib/demo/` carregado só quando `!isSupabaseConfigured` **e** `import.meta.env.DEV`; remover `demoRole` do tipo do contexto em produção | Build de produção não contém as strings `demo@plantao-mais.local` nem `createDemoContext` (verificável por `grep` no `dist/`) |
 | SEC-05 | S2 | `institutions` recebe `insert`/`update` diretos ao cliente **e** existe a RPC `create_institution` que faz validação de fuso e cria convite | `0004_grants.sql`: `grant insert, update on public.institutions ...` | Revogar o grant direto em `institutions`; escrita só pela RPC | Tentativa de `insert` direto em `institutions` retorna erro de permissão; teste SQL cobre |
 | SEC-06 | S2 | Lembrete de plantão nunca dispara: `send_shift_reminders()` existe, não é concedida (correto) mas **nenhum agendamento `pg_cron` foi criado** | `0003_functions.sql:754`; comentário em `:752` sugere o schedule; nenhuma migration o cria | Criar `0005_cron.sql` com `cron.schedule('shift-reminders', '0 * * * *', ...)`; adicionar índice que a função já usa | Inserir plantão em <24 h e verificar que a notificação `shift_reminder` aparece após o job; índice único impede duplicata |
@@ -153,9 +158,9 @@ contradiz o `README.md` atual, que declara a Etapa 1 concluída e a Etapa 2 como
 
 | ID | Sev | Achado | Evidência | Correção exigida | Critério de aceite |
 |---|---|---|---|---|---|
-| QA-01 | S1 | **Nenhum CI.** Nada impede build quebrado de ir para produção | ausência de `.github/workflows` | Workflow: `npm ci` → `typecheck` → `build` → `supabase start` → `db reset` → testes SQL | Workflow verde em PR; bloqueia merge quando vermelho |
+| QA-01 | S1 | CI configurado e validado, mas a proteção de merge da `main` está desabilitada; o check não bloqueia a mesclagem automaticamente | `.github/workflows/ci.yml`; execução do commit `dcbf75e` passou; branch `main` sem proteção | Manter o workflow e habilitar a regra de proteção da `main` exigindo o check **Validar aplicação e banco** | Workflow verde em PR; merge bloqueado quando o check falhar |
 | QA-02 | S2 | **Teste de concorrência é manual** (documento, não código). Exatamente o cenário mais crítico do produto (dupla aprovação) não é verificado automaticamente | `supabase/tests/CONCORRENCIA.md` | Automatizar com dois `psql` em background no CI, ou `pgbench`, cobrindo os 3 cenários (A dupla aprovação, B dois pedidos no mesmo plantão, C aprovar × cancelar) | Os 3 cenários rodam no CI e falham o build quando o `for update` é removido |
-| QA-03 | S2 | **Zero testes de frontend** | `package.json` sem `vitest`/`testing-library` | Adicionar Vitest + Testing Library; cobrir `isPathAllowed`, `mensagemErro`, fluxo de login e aceite de convite | Cobertura mínima de 60% nos módulos `src/lib` e `src/features/*/api.ts` |
+| QA-03 | S2 | Há 6 testes de frontend, mas a cobertura global ainda não foi medida e os demais módulos não estão cobertos de forma abrangente | `package.json` e `tests/`; 6 testes passam na execução registrada | Ampliar os testes com Vitest + Testing Library para rotas, módulos e APIs | Cobertura mínima de 60% nos módulos `src/lib` e `src/features/*/api.ts` |
 | QA-04 | S2 | **Ausência de ESLint/Prettier.** `@typescript-eslint` não configurado; estilo inconsistente (2 espaços vs 4 em `nav.ts`, `modules.ts`) | `package.json` sem `eslint`/`prettier` | Configurar ESLint (flat config) + Prettier; script `npm run lint` no CI | `npm run lint` sem erro; formatação uniforme |
 | QA-05 | S3 | **Teste SQL cobre caminho feliz.** 49 verificações boas, mas não cobrem fuso horário/DST, `min_rest_hours` na montagem, cobertura após troca 1:0, desativação de instituição/setor, convite expirado | `01_isolamento_e_trocas.sql` | Ampliar para ≥ 70 verificações cobrindo os itens de DB-01 a DB-06 | Todos os defeitos da §3.2 têm verificação no arquivo |
 | QA-06 | S3 | **`dist/` presente no diretório** apesar de estar no `.gitignore` (build antigo, engana quem inspeciona o repositório) | `ls` mostra `dist/` com `assets/` e `index.html` | Remover do disco de trabalho; nenhum artefato de build no repositório | `ls` não lista `dist/` após `npm run clean` |
@@ -164,8 +169,8 @@ contradiz o `README.md` atual, que declara a Etapa 1 concluída e a Etapa 2 como
 
 | ID | Sev | Achado | Evidência | Correção exigida | Critério de aceite |
 |---|---|---|---|---|---|
-| DOC-01 | S2 | **`README.md` desinforma**: declara "Etapa 1 concluída" e "Etapa 2 próxima", enquanto o banco tem as Etapas 2–7 implementadas e o frontend tem 4 chamadas | `README.md` tabela de roadmap | Reescrever com duas trilhas (backend × frontend) e rastreamento por checkbox (§7) | README reflete o estado verificado; cada ✅ tem critério de aceite cumprido |
-| DOC-02 | S3 | **`CLAUDE.md` descrevia estado, não plano.** Sem severidade, sem critério de aceite, sem rastreabilidade | versão anterior deste arquivo | Este documento | — |
+| DOC-01 | S2 | A documentação precisava refletir a diferença de maturidade entre backend e frontend e manter README, plano diretor e documento de arquitetura coerentes | README, CLAUDE.md e DOCUMENTATION.md | Manter os três documentos alinhados com evidências atuais e estados verificáveis | README registra o estado e roadmap; CLAUDE.md mantém achados e critérios; DOCUMENTATION.md descreve a arquitetura implementada |
+| DOC-02 | S3 | Corrigido: `CLAUDE.md` agora contém o plano diretor, severidade, critérios de aceite e rastreabilidade | Este documento | Manter este documento atualizado com o plano e o estado dos achados | Achados, critérios e fases permanecem rastreáveis |
 | DOC-03 | S3 | **Nenhum registro de requisitos elicitados.** Regras de negócio ambíguas ficam só na cabeça do autor (ver §5) | ausência de `docs/requisitos.md` | Criar e manter `docs/requisitos.md` com as decisões de Q-01..Q-12 | Toda decisão tem data, responsável e impacto no código |
 
 ---
@@ -311,7 +316,7 @@ Uma etapa só recebe ✅ quando **todos** os itens abaixo forem verdadeiros.
 - [x] Login, cadastro, recuperação e redefinição de senha via Supabase Auth
 - [x] Cadastro público **não** cria vínculo institucional (teste SQL cobre)
 - [x] Rotas privadas exigem sessão + vínculo ativo ou `is_platform_admin`
-- [x] Confirmação exigida no Auth hospedado e entrega/retorno da recuperação de senha verificados pelo responsável (SEC-03)
+- [x] Confirmação exigida no Auth hospedado e fluxo de recuperação de senha validado; confirmação e convite exercitados localmente (SEC-03)
 - [x] Política de senha forte (SEC-02)
 - [x] Modo demonstração isolado do bundle de produção (SEC-04)
 - [x] Testes de frontend do fluxo de login e convite (QA-03; cobertura global ainda pendente)

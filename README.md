@@ -74,8 +74,8 @@ importante deste README e é mantida atualizada a cada entrega verificada.
 |---|---|---|
 | **Backend (Supabase/PostgreSQL)** | 🟢 Avançado | Esquema, RLS, 23 funções de negócio e grants implementados; 35 verificações automatizadas passaram no Supabase local |
 | **Frontend (React)** | 🟡 Parcial | Autenticação e instituições integradas. **Escalas, trocas, aprovações, notificações, setores e configurações ainda não consomem o backend** — telas em construção |
-| **Qualidade** | 🟠 Inicial | `typecheck`, build e 6 testes de frontend passam; workflow de CI configurado; lint e cobertura global ainda pendentes |
-| **Documentação** | 🟢 Atualizada | `CLAUDE.md` (plano de correção) e este README refletem o estado verificado |
+| **Qualidade** | 🟠 Inicial | `typecheck`, build e 6 testes de frontend passam; workflow de CI configurado, mas a proteção de merge da `main` ainda não está habilitada; lint e cobertura global pendentes |
+| **Documentação** | 🟢 Atualizada | Este README registra o estado do produto; `CLAUDE.md` contém o plano de correção; `DOCUMENTATION.md` descreve a arquitetura implementada |
 
 > **Transparência:** telas sem backend integrado estão marcadas na própria interface.
 > Nenhuma tela apresenta dado fictício como se fosse real. O plano completo de correção,
@@ -119,7 +119,7 @@ src/
   pages/               uma página por rota
 supabase/
   migrations/          0001_schema · 0002_security · 0003_functions · 0004_grants
-  tests/               01_isolamento_e_trocas.sql (49 verificações) · CONCORRENCIA.md
+  tests/               01_isolamento_e_trocas.sql (49 verificações definidas; 35 resultados na execução registrada) · CONCORRENCIA.md
 ```
 
 A estrutura-alvo, com separação em `features/` por domínio e regra de dependência
@@ -336,12 +336,12 @@ Cada item concluído tem critério de aceite verificado conforme a §7 do
 
 | | Item | ID |
 |---|---|---|
-| ⬜ | Limpar working tree e commitar linha de base | SEC-01 |
+| ✅ | Linha de base commitada e publicada na `main` | SEC-01 |
 | ⬜ | Pre-commit hook de varredura de segredos (`gitleaks`) | SEC-01 |
 | ✅ | Política de senha forte (10 caracteres + composição) no código e Supabase local | SEC-02 |
 | ✅ | Confirmação obrigatória e fluxo de recuperação com e-mail verificados no hospedado; confirmação/convite exercitados localmente | SEC-03 |
 | ✅ | Isolar modo demonstração do bundle de produção | SEC-04 |
-| ⬜ | Pipeline de CI (typecheck → build → testes SQL) | QA-01 |
+| 🟡 | CI configurado e validado; proteção de merge da `main` ainda não habilitada | QA-01 |
 | ⬜ | ESLint + Prettier | QA-04 |
 | ⬜ | Remover `dist/` do diretório de trabalho | QA-06 |
 | ✅ | README e `CLAUDE.md` refletindo o estado real | DOC-01 · DOC-02 |
@@ -377,7 +377,7 @@ Cada item concluído tem critério de aceite verificado conforme a §7 do
 | ⬜ | **Notificações**: tela + contador no sino + Realtime | FE-08 |
 | ⬜ | **Setores** e **Configurações**: CRUD e regras | FE-09 |
 | ⬜ | Exportação de PDF gerada no servidor | FE-10 |
-| ⬜ | Testes de frontend (Vitest + Testing Library, ≥ 60% em `lib`) | QA-03 |
+| 🟡 | Testes iniciais de frontend (6 testes); cobertura ≥ 60% em `lib` ainda pendente | QA-03 |
 
 ### Fase 4 — Requisitos e fechamento
 
@@ -465,6 +465,7 @@ do Brasil.
 |---|---|
 | `README.md` | Visão de produto, arquitetura e roadmap público |
 | [`CLAUDE.md`](./CLAUDE.md) | **Plano diretor de correção**: achados priorizados, requisitos pendentes, critérios de aceite, regras invioláveis |
+| [`DOCUMENTATION.md`](./DOCUMENTATION.md) | Arquitetura técnica e capacidades implementadas |
 | `supabase/tests/CONCORRENCIA.md` | Roteiro manual dos cenários de concorrência |
 | `.env.example` | Formato das variáveis de ambiente |
 
