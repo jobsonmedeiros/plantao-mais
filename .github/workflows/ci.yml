@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    name: Validar aplicação e banco
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Verificar tipos
+        run: npm run typecheck
+
+      - name: Gerar build
+        run: npm run build
+
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Iniciar Supabase local
+        id: supabase
+        run: npx supabase start
+
+      - name: Recriar banco e aplicar migrations
+        run: npx supabase db reset
+
+      - name: Executar testes SQL
+        shell: bash
+        run: |
+          db_url="$(npx supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+          if [ -z "$db_url" ]; then
+            echo "Não foi possível obter a URL do banco local."
+            exit 1
+          fi
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/01_isolamento_e_trocas.sql
+
+      - name: Parar Supabase local
+        if: always() && steps.supabase.outcome == 'success'
+        run: npx supabase stop --no-backup
