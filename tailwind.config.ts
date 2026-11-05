@@ -9,14 +9,37 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        navy: { DEFAULT: "#143A66", 600: "#1B4B80", 700: "#0F2D50" },
-        brand: { DEFAULT: "#1F5FA6", dark: "#174C86", tint: "#E6EFFA" },
-        ok: { DEFAULT: "#1E8F63", dark: "#146347", tint: "#E3F4EC" },
-        warn: { DEFAULT: "#D9822B", dark: "#8A4B06", tint: "#FDF0DE" },
-        danger: { DEFAULT: "#C94A4A", dark: "#9B2C2C", tint: "#FBE9E9" },
-        surface: "#F4F7FB",
-        line: "#DCE4EE",
-        ink: { DEFAULT: "#17283C", soft: "#51637A" },
+        navy: {
+          DEFAULT: "rgb(var(--color-navy) / <alpha-value>)",
+          600: "rgb(var(--color-navy-600) / <alpha-value>)",
+          700: "rgb(var(--color-navy-700) / <alpha-value>)",
+        },
+        brand: {
+          DEFAULT: "rgb(var(--color-brand) / <alpha-value>)",
+          dark: "rgb(var(--color-brand-dark) / <alpha-value>)",
+          tint: "rgb(var(--color-brand-tint) / <alpha-value>)",
+        },
+        ok: {
+          DEFAULT: "rgb(var(--color-ok) / <alpha-value>)",
+          dark: "rgb(var(--color-ok-dark) / <alpha-value>)",
+          tint: "rgb(var(--color-ok-tint) / <alpha-value>)",
+        },
+        warn: {
+          DEFAULT: "rgb(var(--color-warn) / <alpha-value>)",
+          dark: "rgb(var(--color-warn-dark) / <alpha-value>)",
+          tint: "rgb(var(--color-warn-tint) / <alpha-value>)",
+        },
+        danger: {
+          DEFAULT: "rgb(var(--color-danger) / <alpha-value>)",
+          dark: "rgb(var(--color-danger-dark) / <alpha-value>)",
+          tint: "rgb(var(--color-danger-tint) / <alpha-value>)",
+        },
+        surface: "rgb(var(--color-surface) / <alpha-value>)",
+        line: "rgb(var(--color-line) / <alpha-value>)",
+        ink: {
+          DEFAULT: "rgb(var(--color-ink) / <alpha-value>)",
+          soft: "rgb(var(--color-ink-soft) / <alpha-value>)",
+        },
       },
       fontFamily: {
         sans: [

@@ -1,96 +1,83 @@
-# 🏥 [Plantão+](https://github.com/jobsonmedeiros/plantao-mais) · [Demo](https://plantao-mais-lime.vercel.app/)
+# Plantão+
 
-Plataforma SaaS para gestão de escalas de plantão hospitalar. Permite que hospitais, clínicas e UPAs montem escalas mensais, que profissionais proponham trocas entre si e que a gerência aprove as alterações antes de atualizar a escala oficial.
+**Escalas de plantão mais claras, organizadas e rastreáveis para equipes de enfermagem.**
 
-> **Status:** Etapa 1 concluída (frontend estruturado). Roadmap em 7 etapas documentado no código.
+O Plantão+ é um projeto de portfólio para apoiar instituições de saúde na organização de escalas e, nas próximas etapas, no fluxo de trocas com validação da gerência.
 
-![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-5-purple) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-38bdf8) ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)
+[![Demo online](https://img.shields.io/badge/demo-online-1E8F63)](https://plantao-mais-lime.vercel.app/)
+[![React](https://img.shields.io/badge/React-18-149ECA)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF)](https://vite.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-auth%20em%20integra%C3%A7%C3%A3o-3FCF8E)](https://supabase.com/)
 
----
+> **Estado publicado: Etapa 1 — fundação visual e navegação.** A demo apresenta a interface e os fluxos planejados. Os dados operacionais são fictícios e não são persistidos. A integração de autenticação depende da configuração do Supabase e ainda não representa o fluxo completo de produção.
 
-## 🎯 O problema
+## O que o projeto propõe
 
-Escalas de plantão em hospitais são montadas em planilhas ou papel. Isso gera:
+- Montagem e consulta de escalas por instituição e setor.
+- Solicitações de troca entre profissionais, com aceite do colega e decisão final da gerência.
+- Validação de cobertura, sobreposição de horários e descanso entre jornadas.
+- Histórico e notificações para dar rastreabilidade às alterações.
 
-- Plantões descobertos (ninguém percebe que um turno ficou vazio)
-- Trocas informais por WhatsApp, sem registro nem aprovação
-- Conflito de horários descoberto só na hora do plantão
+Esses são objetivos do produto, não funcionalidades operacionais disponíveis na versão publicada.
 
-O **Plantão+** centraliza o ciclo completo: montagem → publicação → negociação de troca → aprovação → escala oficial atualizada.
+## Demonstração
 
----
+Acesse a [demo do Plantão+](https://plantao-mais-lime.vercel.app/). Use a navegação para conhecer as telas. Números, nomes e ações das telas operacionais são demonstrativos; não representam uma instituição ou equipe real.
 
-## 🧠 Decisões técnicas
+## Engenharia e arquitetura
 
-| Decisão | Motivo |
-|---------|--------|
-| **RBAC via contexto + RLS no banco** | O menu esconde rotas no front, mas a autorização real fica no Postgres (Row Level Security). Esconder no front é UX; bloquear no banco é segurança. |
-| **Roadmap embutido no código** | Cada módulo tem um campo `stage` (`src/lib/modules.ts`). Qualquer dev sabe, lendo o código, o que já funciona e o que é placeholder. |
-| **Placeholders honestos** | Nenhuma tela finge ter dados. Cards vazios dizem "disponível na Etapa X". Evita protótipo que parece pronto mas não é. |
-| **Acessibilidade como requisito, não extra** | Skip link, `aria-label`, `role="status"` com `aria-live`, foco visível global e respeito a `prefers-reduced-motion`. |
-| **Escala lida por letra, não só cor** | Chips mostram `D`, `N`, `F`, `Fé` junto da cor. Daltônicos conseguem ler a grade. |
-| **Mobile-first com bottom nav** | Profissional consulta plantão no corredor do hospital, no celular. |
+Para conhecer o ciclo de desenvolvimento, as decisões técnicas, os limites da versão publicada e o roadmap, consulte o [Artefato de Arquitetura e Engenharia](./DOCUMENTATION.md).
 
----
+## Stack
 
-## 🏗️ Arquitetura
+- **Interface:** React 18, TypeScript e Vite.
+- **Estilos e componentes:** Tailwind CSS, componentes próprios e Lucide.
+- **Navegação:** React Router.
+- **Autenticação em integração:** Supabase Auth quando as variáveis de ambiente estão configuradas.
+- **Hospedagem da demo:** Vercel, com fallback para rotas da aplicação de página única (SPA).
 
-### Estrutura de pastas
+## Executar localmente
 
-- **`src/components/`**
-  - `AppShell`, `AuthLayout`, `ShiftChip`, `StatCard` (componentes de layout e negócio)
-  - `ui/` (Design system: `Button`, `Card`, `Badge` — padrão shadcn/ui)
-- **`src/lib/`**
-  - `modules.ts` (Catálogo de módulos + etapa de ativação)
-  - `nav.ts` (Rotas por perfil + função `isPathAllowed()`)
-  - `role-context.tsx` (Contexto de papel: `admin` | `manager` | `professional`)
-- **`src/pages/`**
-  - Uma página por rota (ex: `Dashboard.tsx`, `Login.tsx`)
-- **`supabase/`**
-  - Migrations e schema (Etapa 2+)
-
-### Fluxo principal
-
-1. Admin cadastra instituição
-2. Gerente cria setores e convida profissionais
-3. Gerente monta e publica a escala mensal
-4. Profissional vê "Minha escala"
-5. Profissional propõe troca com colega
-6. Colega aceita a proposta
-7. Gerente aprova ou rejeita
-8. Escala oficial é atualizada
-9. Todos os envolvidos são notificados
-
-### Perfis e permissões
-
-| Perfil | Módulos acessíveis |
-|--------|--------------------|
-| **Administrador** | Instituições, Setores, Profissionais, Relatórios, Configurações |
-| **Gerência** | Escalas, Profissionais, Setores, Trocas, Aprovações, Relatórios |
-| **Profissional** | Minha escala, Escala dos colegas, Trocar plantão, Solicitações, Notificações, Perfil |
-
----
-
-## 🗺️ Roadmap
-
-| Etapa | Entrega | Status |
-|-------|---------|--------|
-| 1 | Estrutura, navegação e todos os layouts | ✅ Concluído |
-| 2 | Supabase Auth + perfil real | 🔜 Próxima |
-| 3 | CRUDs: instituições, setores, profissionais | ⬜ |
-| 4 | Montagem e publicação de escalas | ⬜ |
-| 5 | Fluxo de trocas entre profissionais | ⬜ |
-| 6 | Aprovação pela gerência | ⬜ |
-| 7 | Notificações | ⬜ |
-| v2 | Relatórios e analytics | ⬜ |
-
----
-
-## 🚀 Como rodar localmente
+Requisitos: Node.js e npm.
 
 ```bash
-git clone https://github.com/jobsonmedeiros/plantao-mais.git
-cd plantao-mais
-npm install
-cp .env.example .env    # preencha com suas chaves do Supabase
+npm ci
 npm run dev
+```
+
+Para validar tipos e gerar o build de produção:
+
+```bash
+npm run typecheck
+npm run build
+```
+
+Sem configuração do Supabase, é possível conhecer a interface em modo de demonstração. Para testar autenticação, copie `.env.example` para `.env` e configure `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` de um projeto Supabase. **Nunca use a chave `service_role` no navegador.**
+
+## Roadmap
+
+| Etapa | Escopo |
+|---|---|
+| 1 | Fundação visual, componentes e navegação — publicada |
+| 2 | Autenticação, perfil e sessão |
+| 3 | Instituições, unidades, setores e convites |
+| 4 | Escalas, cobertura e publicação |
+| 5 | Solicitações e propostas de troca |
+| 6 | Aprovação gerencial e atualização transacional |
+| 7 | Notificações e lembretes |
+| 8 | Testes de segurança, isolamento, concorrência e auditoria |
+
+Cada etapa será apresentada como concluída somente depois de implementada e validada. A interface de funcionalidades futuras não deve ser interpretada como backend pronto.
+
+## Princípios de engenharia
+
+- A autorização deve ser aplicada no banco com Row Level Security (RLS), não apenas escondida na interface.
+- O cadastro público não concede vínculo institucional; o acesso deve vir de convite.
+- Alterações de escala e trocas devem ser feitas por funções transacionais do banco.
+- Não armazenar dados clínicos de pacientes.
+- Avisos trabalhistas do sistema não substituem orientação jurídica.
+
+## Autoria e transparência
+
+Projeto de Jobson Medeiros, desenvolvido com apoio de Claude e GitHub Copilot. As decisões, revisões e validações do projeto são acompanhadas pelo autor.

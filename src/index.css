@@ -2,12 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light;
+  --color-page: 255 255 255;
+  --color-paper: 255 255 255;
+  --color-navy: 20 58 102;
+  --color-navy-600: 27 75 128;
+  --color-navy-700: 15 45 80;
+  --color-brand: 31 95 166;
+  --color-brand-dark: 23 76 134;
+  --color-brand-tint: 230 239 250;
+  --color-ok: 30 143 99;
+  --color-ok-dark: 20 99 71;
+  --color-ok-tint: 227 244 236;
+  --color-warn: 217 130 43;
+  --color-warn-dark: 138 75 6;
+  --color-warn-tint: 253 240 222;
+  --color-danger: 201 74 74;
+  --color-danger-dark: 155 44 44;
+  --color-danger-tint: 251 233 233;
+  --color-surface: 244 247 251;
+  --color-line: 220 228 238;
+  --color-ink: 23 40 60;
+  --color-ink-soft: 81 99 122;
+  --tw-ring-offset-color: rgb(255 255 255);
+}
+
+:root.dark {
+  color-scheme: dark;
+  --color-page: 15 23 32;
+  --color-paper: 25 36 48;
+  --color-navy: 10 24 39;
+  --color-navy-600: 21 41 61;
+  --color-navy-700: 6 16 28;
+  --color-brand: 52 117 184;
+  --color-brand-dark: 157 200 246;
+  --color-brand-tint: 29 48 68;
+  --color-ok: 20 118 83;
+  --color-ok-dark: 140 221 184;
+  --color-ok-tint: 27 58 47;
+  --color-warn: 155 88 11;
+  --color-warn-dark: 255 208 140;
+  --color-warn-tint: 66 48 27;
+  --color-danger: 178 68 68;
+  --color-danger-dark: 255 166 166;
+  --color-danger-tint: 69 39 42;
+  --color-surface: 21 31 42;
+  --color-line: 49 63 77;
+  --color-ink: 231 238 245;
+  --color-ink-soft: 174 188 202;
+  --tw-ring-offset-color: rgb(15 23 32);
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-white font-sans text-ink antialiased;
+    @apply font-sans text-ink antialiased;
+    background-color: rgb(var(--color-page));
+    caret-color: rgb(var(--color-brand));
+  }
+  ::selection {
+    background-color: rgb(var(--color-brand-tint));
+    color: rgb(var(--color-ink));
   }
   :focus-visible {
     @apply outline-none ring-2 ring-brand ring-offset-2;
@@ -20,6 +78,19 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+html.dark .bg-white {
+  background-color: rgb(var(--color-paper) / var(--tw-bg-opacity, 1));
+}
+
+html.dark .logo-mark-light {
+  background-color: #ffffff;
+  color: #143a66;
+}
+
+html.dark * {
+  --tw-ring-offset-color: rgb(var(--color-page));
 }
 
 /* Regras de impressão para separação em 2 páginas legíveis */
