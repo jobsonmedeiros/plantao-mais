@@ -269,12 +269,22 @@ incluindo maiúsculas, minúsculas e números. As telas de cadastro, aceite de c
 redefinição e alteração de senha aplicam a mesma regra. É possível pedir o reenvio da
 confirmação nas telas de cadastro pendente, login e convite.
 
-`supabase/config.toml` define o comportamento do **ambiente local**. Para aplicar a
-mesma política no projeto Supabase hospedado, configure as opções equivalentes em
-**Authentication → Sign In / Providers → Email** (confirmação obrigatória e requisitos
-de senha). Configure também um SMTP próprio para entrega confiável de e-mails e inclua
-as URLs de retorno do app na lista de URLs permitidas do projeto. Para desenvolvimento
-local, o retorno autorizado é `http://localhost:5173` ou `http://127.0.0.1:5173`.
+O requisito de confirmação também foi verificado no projeto hospedado: a configuração
+pública do Auth retorna `mailer_autoconfirm = false`. Isso confirma que o login automático
+após cadastro está desativado. A entrega de e-mail do Auth hospedado foi confirmada com
+uma mensagem de recuperação de senha; o responsável confirmou que redefiniu a senha e
+retornou ao portal da Vercel. Localmente, o Mailpit recebeu o e-mail de confirmação e,
+após ajustar a configuração, o link de convite retornou ao caminho `/convite/:token`.
+Uma chamada automatizada isolada indicou `localhost` no redirect, em divergência com o
+fluxo real confirmado; monitorar caso o comportamento reapareça.
+
+`supabase/config.toml` define o comportamento do **ambiente local**. No projeto
+Supabase hospedado, confirme em **Authentication → Sign In / Providers → Email** que
+confirmação obrigatória e requisitos de senha estão alinhados. Configure também um SMTP
+próprio para entrega confiável de e-mails e inclua
+as URLs de retorno do app na lista de URLs permitidas do projeto, cobrindo as rotas
+`/app`, `/convite/*` e `/redefinir-senha`. No ambiente local, `supabase/config.toml`
+permite `http://localhost:5173/**` e `http://127.0.0.1:5173/**`.
 Esses ajustes do projeto hospedado não são aplicados por `supabase start` nem por este
 repositório.
 
@@ -329,7 +339,7 @@ Cada item concluído tem critério de aceite verificado conforme a §7 do
 | ⬜ | Limpar working tree e commitar linha de base | SEC-01 |
 | ⬜ | Pre-commit hook de varredura de segredos (`gitleaks`) | SEC-01 |
 | ✅ | Política de senha forte (10 caracteres + composição) no código e Supabase local | SEC-02 |
-| 🟡 | Confirmação de e-mail obrigatória (local pronta; falta configurar o projeto hospedado e SMTP) | SEC-03 |
+| ✅ | Confirmação obrigatória e fluxo de recuperação com e-mail verificados no hospedado; confirmação/convite exercitados localmente | SEC-03 |
 | ✅ | Isolar modo demonstração do bundle de produção | SEC-04 |
 | ⬜ | Pipeline de CI (typecheck → build → testes SQL) | QA-01 |
 | ⬜ | ESLint + Prettier | QA-04 |
