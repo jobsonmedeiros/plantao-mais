@@ -271,12 +271,12 @@ confirmação nas telas de cadastro pendente, login e convite.
 
 O requisito de confirmação também foi verificado no projeto hospedado: a configuração
 pública do Auth retorna `mailer_autoconfirm = false`. Isso confirma que o login automático
-após cadastro está desativado. A entrega de e-mail do Auth hospedado foi confirmada com
-uma mensagem de recuperação de senha; o responsável confirmou que redefiniu a senha e
-retornou ao portal da Vercel. Localmente, o Mailpit recebeu o e-mail de confirmação e,
-após ajustar a configuração, o link de convite retornou ao caminho `/convite/:token`.
-Uma chamada automatizada isolada indicou `localhost` no redirect, em divergência com o
-fluxo real confirmado; monitorar caso o comportamento reapareça.
+após cadastro está desativado. O fluxo hospedado de recuperação de senha foi validado
+manualmente: o e-mail foi entregue, a senha foi redefinida e o link retornou à aplicação
+publicada na Vercel. No ambiente local, o Mailpit recebeu o e-mail de confirmação e,
+após o ajuste da allowlist, o link de convite retornou ao caminho `/convite/:token`.
+Uma chamada automatizada separada retornou um redirect para `localhost`; essa divergência
+não foi reproduzida no teste manual, e sua causa não foi determinada.
 
 `supabase/config.toml` define o comportamento do **ambiente local**. No projeto
 Supabase hospedado, confirme em **Authentication → Sign In / Providers → Email** que
