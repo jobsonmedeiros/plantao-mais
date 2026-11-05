@@ -35,15 +35,21 @@ const item = (to: string, label: string, short: string, icon: LucideIcon, pin = 
   pin,
 });
 
-export const navByRole: Record<Role, NavItem[]> = {
-  admin: [
+const platformAdminNav: NavItem[] = [
     item("/app", "Dashboard", "Início", LayoutDashboard, true),
     item("/app/instituicoes", "Instituições", "Instituições", Building2, true),
+];
+
+const institutionAdminNav: NavItem[] = [
+    item("/app", "Dashboard", "Início", LayoutDashboard, true),
     item("/app/setores", "Setores", "Setores", Layers, true),
     item("/app/profissionais", "Profissionais", "Equipe", Users, true),
-    item("/app/relatorios", "Relatórios", "Relatórios", BarChart3),
     item("/app/configuracoes", "Configurações", "Ajustes", Settings),
-  ],
+];
+
+export const navByRole: Record<Role, NavItem[]> = {
+  platform_admin: platformAdminNav,
+  institution_admin: institutionAdminNav,
   manager: [
     item("/app", "Dashboard", "Início", LayoutDashboard, true),
     item("/app/escalas", "Escalas", "Escalas", CalendarDays, true),
@@ -66,7 +72,7 @@ export const navByRole: Record<Role, NavItem[]> = {
 };
 
 /** Rotas que todo perfil pode abrir, além das do próprio menu. */
-export const sharedPaths = ["/app/notificacoes"];
+export const sharedPaths = ["/app/notificacoes", "/app/meu-perfil"];
 
 export function isPathAllowed(role: Role, path: string) {
   return sharedPaths.includes(path) || navByRole[role].some((n) => n.to === path);

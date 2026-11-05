@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Bell, MoreHorizontal, X } from "lucide-react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Bell, LogOut, MoreHorizontal, UserRound, X } from "lucide-react";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Logo } from "@/components/Logo";
+import { useAuth, type Papel } from "@/lib/auth-context";
 import { navByRole, type NavItem } from "@/lib/nav";
 import { roleLabels, useRole } from "@/lib/role-context";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 function SideLink({ item }: { item: NavItem }) {
@@ -112,7 +114,30 @@ function BottomNav({ items }: { items: NavItem[] }) {
 
 export function AppShell() {
   const { role } = useRole();
+  const {
+    perfil,
+    vinculos,
+    instituicaoAtivaId,
+    definirInstituicaoAtiva,
+    demoRole,
+    definirDemoRole,
+    sair,
+  } = useAuth();
+  const [erroSaida, setErroSaida] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  if (!role) return null;
+
   const items = navByRole[role];
+
+  async function handleSair() {
+    const resultado = await sair();
+    if (resultado.erro) {
+      setErroSaida(resultado.erro);
+      return;
+    }
+    navigate("/login", { replace: true });
+  }
 
   return (
     <div className="min-h-screen md:flex">
@@ -134,21 +159,80 @@ export function AppShell() {
             ))}
           </ul>
         </nav>
-        <p className="px-3 text-sm text-white/70">Perfil: {roleLabels[role]}</p>
+        <p className="px-3 text-sm text-white/70">{roleLabels[role]}</p>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col print:w-full print:block">
-        <header className="flex items-center justify-between border-b border-line bg-white px-4 py-3 md:justify-end md:px-8 print:hidden">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-white px-4 py-3 md:px-8 print:hidden">
           <Logo className="md:hidden" />
-          <Link
-            to="/app/notificacoes"
-            aria-label="Notificações"
-            className="rounded-md p-2 text-ink-soft hover:bg-surface"
-          >
-            <Bell className="h-5 w-5" aria-hidden="true" />
-          </Link>
+          <div className="ml-auto flex min-w-0 items-center gap-3">
+            {!isSupabaseConfigured && (
+              <label className="flex min-w-0 items-center gap-2 text-sm text-ink-soft">
+                <span className="hidden sm:inline">Perfil</span>
+                <select
+                  aria-label="Perfil em demonstração"
+                  value={demoRole ?? "manager"}
+                  onChange={(event) => definirDemoRole(event.target.value as Papel)}
+                  className="max-w-[10rem] rounded-md border border-line bg-white px-2 py-2 text-sm font-semibold text-ink sm:max-w-[14rem]"
+                >
+                  <option value="platform_admin">Administração da plataforma</option>
+                  <option value="institution_admin">Administração da instituição</option>
+                  <option value="manager">Gerência</option>
+                  <option value="professional">Profissional</option>
+                </select>
+              </label>
+            )}
+            {vinculos.length > 1 && instituicaoAtivaId && (
+              <label className="flex min-w-0 items-center gap-2 text-sm text-ink-soft">
+                <span className="hidden sm:inline">Instituição</span>
+                <select
+                  aria-label="Instituição ativa"
+                  value={instituicaoAtivaId}
+                  onChange={(event) => definirInstituicaoAtiva(event.target.value)}
+                  className="max-w-[12rem] rounded-md border border-line bg-white px-2 py-2 text-sm font-semibold text-ink sm:max-w-[18rem]"
+                >
+                  {vinculos.map((vinculo) => (
+                    <option key={vinculo.id} value={vinculo.institutionId}>
+                      {vinculo.institutionName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {perfil && (
+              <Link
+                to="/app/meu-perfil"
+                aria-label="Meu perfil"
+                title={perfil.nomeCompleto}
+                className="rounded-md p-2 text-ink-soft hover:bg-surface"
+              >
+                <UserRound className="h-5 w-5" aria-hidden="true" />
+              </Link>
+            )}
+            <Link
+              to="/app/notificacoes"
+              aria-label="Notificações"
+              className="rounded-md p-2 text-ink-soft hover:bg-surface"
+            >
+              <Bell className="h-5 w-5" aria-hidden="true" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => void handleSair()}
+              aria-label="Sair da conta"
+              title="Sair da conta"
+              className="rounded-md p-2 text-ink-soft hover:bg-surface"
+            >
+              <LogOut className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
         </header>
 
+        {erroSaida && (
+          <div role="alert" className="mx-4 mt-3 rounded-md bg-danger-tint p-3 text-sm text-danger-dark md:mx-8">
+            {erroSaida}
+          </div>
+        )}
         <main id="conteudo" tabIndex={-1} className="flex-1 bg-surface px-4 py-6 pb-28 md:px-8 md:pb-10 print:bg-white print:p-0 print:m-0 print:overflow-visible">
           <Outlet />
         </main>

@@ -13,9 +13,11 @@ O usuário já autorizou a implementação ("agora sim"). Trabalhe uma etapa por
 - Status de troca: `swap_requests.status` ∈ pending, awaiting_manager, approved, denied, cancelled. `swap_proposals.status` ∈ pending, accepted, rejected, cancelled. "accepted" é aceite do colega, nunca aprovação final.
 
 ## Estado atual
-- Etapa 1 (fundação visual) pronta em `src/`, com um seletor de perfil de **pré-visualização** (`src/lib/role-context.tsx`, `AppShell`). Ele deve ser removido na Etapa 2 e o papel passar a vir de `memberships`.
-- `supabase/migrations/0001_schema.sql` a `0004_grants.sql` e testes SQL já estão escritos, mas **nunca foram executados nem validados**. Primeiro passo: `supabase start`, `supabase db reset`, corrigir erros de SQL e rodar os testes.
-- Faltam a integração do frontend (Etapas 2–7), a validação de concorrência e a auditoria final (Etapa 8).
+- Etapa 1 (fundação visual) e Etapa 2 (autenticação) prontas. Login, cadastro, recuperação/redefinição de senha e aceite de convite usam Supabase Auth. Cadastro público não cria vínculo institucional.
+- O papel e a instituição ativa vêm do perfil e dos vínculos ativos em `memberships`; não existe seletor de papel de pré-visualização. As rotas privadas exigem sessão e vínculo institucional ativo ou `is_platform_admin`.
+- `supabase/migrations/0001_schema.sql` a `0004_grants.sql` foram aplicadas com `supabase db reset`; `supabase/tests/01_isolamento_e_trocas.sql` passou nas 35 verificações.
+- Etapa 3A: a tela de instituições permite que o administrador da plataforma cadastre e ative/desative instituições e gere o link de convite do administrador. O convite deve ser compartilhado manualmente.
+- Faltam as demais telas da Etapa 3 (unidades/setores, equipe e configurações), as Etapas 4–7, a validação de concorrência e a auditoria final (Etapa 8). O frontend ainda não é uma integração completa das escalas e trocas.
 
 ## Modelo (resumo; ver 0001)
 - Vínculo: `memberships(role: institution_admin|manager|professional)`; setor: `sector_members(position, is_manager)`. Gerente só administra setores onde `is_manager = true`; `institution_admin` administra todos da instituição. `profiles.is_platform_admin` só é alterável por SQL.

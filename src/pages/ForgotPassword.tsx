@@ -18,13 +18,17 @@ export default function ForgotPassword() {
     setCarregando(true);
     setErro(null);
 
-    const res = await recuperarSenha(email);
-    setCarregando(false);
-
-    if (res.erro) {
-      setErro(res.erro);
-    } else {
-      setSucesso(true);
+    try {
+      const res = await recuperarSenha(email);
+      if (res.erro) {
+        setErro(res.erro);
+      } else {
+        setSucesso(true);
+      }
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : "Não foi possível solicitar a recuperação.");
+    } finally {
+      setCarregando(false);
     }
   }
 
@@ -36,7 +40,7 @@ export default function ForgotPassword() {
       {sucesso ? (
         <div className="space-y-4">
           <div className="rounded-md bg-ok-tint p-4 text-sm text-ok-dark font-medium">
-            ✓ E-mail enviado com sucesso para <strong>{email}</strong>! Verifique sua caixa de entrada e siga o link para redefinir sua senha.
+            Se houver uma conta associada a <strong>{email}</strong>, você receberá instruções para redefinir sua senha.
           </div>
           <Link to="/login" className="block text-center text-sm font-semibold text-brand-dark underline">
             Voltar para o login

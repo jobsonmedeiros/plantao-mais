@@ -1,43 +1,71 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "@/components/AuthLayout";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, type Papel } from "@/lib/auth-context";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { cn } from "@/lib/utils";
+
+const opcoesPerfilDemo: { value: Papel; label: string }[] = [
+  { value: "platform_admin", label: "Administração da plataforma" },
+  { value: "institution_admin", label: "Administração da instituição" },
+  { value: "manager", label: "Gerência" },
+  { value: "professional", label: "Profissional" },
+];
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [mensagemErro, setMensagemErro] = useState<string | null>(null);
-  const { entrar } = useAuth();
+  const { entrar, usuario, carregando: carregandoSessao, demoRole, definirDemoRole } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  if (!carregandoSessao && usuario) return <Navigate to="/app" replace />;
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setCarregando(true);
     setMensagemErro(null);
 
-    const { erro } = await entrar(email, senha);
-    setCarregando(false);
-
-    if (erro) {
-      setMensagemErro(
-        erro.includes("Invalid login credentials")
-          ? "E-mail ou senha incorretos."
-          : erro
-      );
-    } else {
-      navigate("/app");
+    try {
+      const { erro } = await entrar(email, senha);
+      if (erro) {
+        setMensagemErro(erro);
+      } else {
+        const redirect = new URLSearchParams(location.search).get("redirect");
+        const destino = redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/app";
+        navigate(destino, { replace: true });
+      }
+    } catch (error) {
+      setMensagemErro(error instanceof Error ? error.message : "Não foi possível entrar.");
+    } finally {
+      setCarregando(false);
     }
   }
 
   return (
-    <AuthLayout title="Entrar no Plantão+" subtitle="Use o e-mail institucional e senha da sua conta.">
+    <AuthLayout title="Entrar no Plantão+" subtitle="Use o e-mail e a senha da sua conta.">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {!isSupabaseConfigured && (
+          <div className="rounded-md border border-brand/30 bg-brand-tint p-3">
+            <Label htmlFor="perfil-demo">Perfil em demonstração</Label>
+            <select
+              id="perfil-demo"
+              value={demoRole ?? "manager"}
+              onChange={(event) => definirDemoRole(event.target.value as Papel)}
+              className="mt-2 w-full rounded-md border border-line bg-white px-3 py-2 text-sm font-medium text-ink shadow-sm"
+            >
+              {opcoesPerfilDemo.map((opcao) => (
+                <option key={opcao.value} value={opcao.value}>
+                  {opcao.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
           <Label htmlFor="email">E-mail</Label>
           <Input
@@ -48,7 +76,7 @@ export default function Login() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="seu.email@hospital.com.br"
+            placeholder="seu.email@exemplo.com.br"
           />
         </div>
         <div>
@@ -71,8 +99,14 @@ export default function Login() {
           </div>
         )}
 
+        {!isSupabaseConfigured && (
+          <div role="alert" className="rounded-md border border-brand/30 bg-brand-tint p-3 text-sm font-medium text-brand-dark">
+            Modo demonstração ativo: você pode alternar entre perfis e navegar como administrador, gerência ou profissional.
+          </div>
+        )}
+
         <Button type="submit" className="w-full" disabled={carregando}>
-          {carregando ? "Entrando..." : "Entrar"}
+          {carregando ? "Entrando..." : isSupabaseConfigured ? "Entrar" : `Entrar como ${opcoesPerfilDemo.find((opcao) => opcao.value === demoRole)?.label ?? "Gerência"}`}
         </Button>
 
         <p className="text-center text-sm">
@@ -80,20 +114,13 @@ export default function Login() {
             Esqueci minha senha
           </Link>
         </p>
+        <p className="text-center text-sm text-ink-soft">
+          Ainda não tem conta?{" "}
+          <Link to="/cadastro" className="font-semibold text-brand-dark underline">
+            Criar cadastro
+          </Link>
+        </p>
       </form>
-
-      {!isSupabaseConfigured && (
-        <div className="mt-4 rounded-md bg-surface p-3 text-xs text-ink-soft border border-line">
-          💡 Modo de demonstração ativo. Você pode digitar qualquer e-mail para navegar ou usar o botão abaixo.
-        </div>
-      )}
-
-      <div className="mt-6 border-t border-line pt-6">
-        <p className="mb-3 text-sm text-ink-soft">Acesso direto ao ambiente:</p>
-        <Link to="/app" className={cn(buttonVariants({ variant: "outline" }), "w-full")}>
-          Acessar painel do sistema
-        </Link>
-      </div>
     </AuthLayout>
   );
 }
