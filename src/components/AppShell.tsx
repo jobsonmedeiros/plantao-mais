@@ -9,16 +9,16 @@ import { roleLabels, useRole } from "@/lib/role-context";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
-const DemoAppRoleSelector = import.meta.env.DEV
-  ? lazy(() => import("@/lib/demo/auth-provider").then((modulo) => ({ default: modulo.DemoAppRoleSelector })))
-  : null;
+const DemoAppRoleSelector = lazy(() =>
+  import("@/lib/demo/auth-provider").then((modulo) => ({ default: modulo.DemoAppRoleSelector })),
+);
 
 function SideLink({ item }: { item: NavItem }) {
   const Icon = item.icon;
   return (
     <NavLink
       to={item.to}
-      end={item.to === "/app"}
+      end={item.to.endsWith("/app")}
       className={({ isActive }) =>
         cn(
           "flex items-center gap-3 rounded-md px-3 py-2.5 text-[15px] font-medium text-white/80 hover:bg-white/10 hover:text-white",
@@ -117,7 +117,7 @@ function BottomNav({ items }: { items: NavItem[] }) {
   );
 }
 
-export function AppShell() {
+export function AppShell({ modoDemoPublico = false }: { modoDemoPublico?: boolean }) {
   const { role } = useRole();
   const {
     perfil,
@@ -131,7 +131,14 @@ export function AppShell() {
 
   if (!role) return null;
 
-  const items = navByRole[role];
+  const itemsBase = modoDemoPublico
+    ? navByRole[role].filter((item) => item.to !== "/app/meu-perfil")
+    : navByRole[role];
+  const items = itemsBase.map((item) =>
+    modoDemoPublico ? { ...item, to: `/demo${item.to}` } : item,
+  );
+  const caminho = (path: string) => modoDemoPublico ? `/demo${path}` : path;
+  const exibirDemo = modoDemoPublico || (import.meta.env.DEV && !isSupabaseConfigured);
 
   async function handleSair() {
     const resultado = await sair();
@@ -169,7 +176,7 @@ export function AppShell() {
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-white px-4 py-3 md:px-8 print:hidden">
           <Logo className="md:hidden" />
           <div className="ml-auto flex min-w-0 items-center gap-3">
-            {import.meta.env.DEV && !isSupabaseConfigured && DemoAppRoleSelector && (
+            {exibirDemo && (
               <Suspense fallback={null}>
                 <DemoAppRoleSelector />
               </Suspense>
@@ -191,9 +198,9 @@ export function AppShell() {
                 </select>
               </label>
             )}
-            {perfil && (
+            {perfil && !modoDemoPublico && (
               <Link
-                to="/app/meu-perfil"
+                to={caminho("/app/meu-perfil")}
                 aria-label="Meu perfil"
                 title={perfil.nomeCompleto}
                 className="rounded-md p-2 text-ink-soft hover:bg-surface"
@@ -203,7 +210,7 @@ export function AppShell() {
             )}
             <ThemeToggle />
             <Link
-              to="/app/notificacoes"
+              to={caminho("/app/notificacoes")}
               aria-label="Notificações"
               className="rounded-md p-2 text-ink-soft hover:bg-surface"
             >
@@ -211,9 +218,9 @@ export function AppShell() {
             </Link>
             <button
               type="button"
-              onClick={() => void handleSair()}
-              aria-label="Sair da conta"
-              title="Sair da conta"
+              onClick={() => modoDemoPublico ? navigate("/login", { replace: true }) : void handleSair()}
+              aria-label={modoDemoPublico ? "Sair da demonstração" : "Sair da conta"}
+              title={modoDemoPublico ? "Sair da demonstração" : "Sair da conta"}
               className="rounded-md p-2 text-ink-soft hover:bg-surface"
             >
               <LogOut className="h-5 w-5" aria-hidden="true" />
@@ -227,13 +234,15 @@ export function AppShell() {
           </div>
         )}
         <main id="conteudo" tabIndex={-1} className="flex-1 bg-surface px-4 py-6 pb-28 md:px-8 md:pb-10 print:bg-white print:p-0 print:m-0 print:overflow-visible">
-          <div
-            role="status"
-            className="mb-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-5 text-amber-950"
-          >
-            <strong>Ambiente de demonstração — Etapa 1.</strong>{" "}
-            Os dados operacionais são fictícios. As ações destas telas não são persistidas nem alteram uma escala oficial.
-          </div>
+          {exibirDemo && (
+            <div
+              role="status"
+              className="mb-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-5 text-amber-950"
+            >
+              <strong>Ambiente de demonstração.</strong>{" "}
+              Os dados são fictícios. As ações não são persistidas nem alteram uma escala oficial.
+            </div>
+          )}
           <Suspense
             fallback={
               <div className="py-12 text-center text-sm font-semibold text-ink-soft" role="status" aria-live="polite">

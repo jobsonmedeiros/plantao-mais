@@ -90,6 +90,12 @@ describe("autenticação", () => {
     expect(mocks.entrar).toHaveBeenCalledWith("profissional@teste.local", "senha-existente");
   });
 
+  it("oferece acesso público ao modo de demonstração", () => {
+    renderRota(<Login />);
+
+    expect(screen.getByRole("link", { name: "Ver demonstração pública" })).toHaveAttribute("href", "/demo");
+  });
+
   it("oferece reenvio quando o e-mail ainda não foi confirmado", async () => {
     mocks.entrar.mockResolvedValue({
       erro: "Confirme seu e-mail antes de entrar.",

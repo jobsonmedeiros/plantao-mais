@@ -10,6 +10,7 @@ import {
 
 type DemoAuthValue = {
   papel: Papel;
+  opcoesPapel: { value: Papel; label: string }[];
   selecionarPapel: (papel: Papel, entrar?: boolean) => void;
 };
 
@@ -21,6 +22,10 @@ const opcoesPapel: { value: Papel; label: string }[] = [
   { value: "manager", label: "Gerência" },
   { value: "professional", label: "Profissional" },
 ];
+
+const opcoesPapelPublico = opcoesPapel.filter(
+  ({ value }) => value === "manager" || value === "professional",
+);
 
 function criarUsuarioDemo(): User {
   return {
@@ -72,20 +77,29 @@ function criarContextoDemo(papel: Papel): { perfil: PerfilUsuario; vinculos: Vin
   return { perfil, vinculos };
 }
 
-export function DemoAuthProvider({ children }: { children: ReactNode }) {
+export function DemoAuthProvider({
+  children,
+  modoPublico = false,
+}: {
+  children: ReactNode;
+  modoPublico?: boolean;
+}) {
   const [papel, setPapel] = useState<Papel>("manager");
-  const [autenticado, setAutenticado] = useState(false);
+  const [autenticado, setAutenticado] = useState(modoPublico);
+  const opcoesDisponiveis = modoPublico ? opcoesPapelPublico : opcoesPapel;
   const { perfil, vinculos } = useMemo(() => criarContextoDemo(papel), [papel]);
   const usuario = useMemo(() => (autenticado ? criarUsuarioDemo() : null), [autenticado]);
   const valorDemo = useMemo(
     () => ({
       papel,
+      opcoesPapel: opcoesDisponiveis,
       selecionarPapel: (novoPapel: Papel, entrar = false) => {
+        if (!opcoesDisponiveis.some((opcao) => opcao.value === novoPapel)) return;
         setPapel(novoPapel);
         if (entrar) setAutenticado(true);
       },
     }),
-    [papel],
+    [opcoesDisponiveis, papel],
   );
   const valorAuth: ContextoAutenticacaoValor = {
     usuario,
@@ -126,7 +140,7 @@ function useDemoAuth() {
 }
 
 export function DemoLoginRoleSelector() {
-  const { papel, selecionarPapel } = useDemoAuth();
+  const { papel, opcoesPapel: opcoes, selecionarPapel } = useDemoAuth();
   return (
     <div className="rounded-md border border-brand/30 bg-brand-tint p-3">
       <label htmlFor="perfil-demo" className="text-sm font-medium">
@@ -135,10 +149,13 @@ export function DemoLoginRoleSelector() {
       <select
         id="perfil-demo"
         value={papel}
-        onChange={(event) => selecionarPapel(event.target.value as Papel, true)}
+        onChange={(event) => {
+          const opcao = opcoes.find(({ value }) => value === event.target.value);
+          if (opcao) selecionarPapel(opcao.value, true);
+        }}
         className="mt-2 w-full rounded-md border border-line bg-white px-3 py-2 text-sm font-medium text-ink shadow-sm"
       >
-        {opcoesPapel.map((opcao) => (
+        {opcoes.map((opcao) => (
           <option key={opcao.value} value={opcao.value}>
             {opcao.label}
           </option>
@@ -152,17 +169,20 @@ export function DemoLoginRoleSelector() {
 }
 
 export function DemoAppRoleSelector() {
-  const { papel, selecionarPapel } = useDemoAuth();
+  const { papel, opcoesPapel: opcoes, selecionarPapel } = useDemoAuth();
   return (
     <label className="flex min-w-0 items-center gap-2 text-sm text-ink-soft">
       <span className="hidden sm:inline">Perfil</span>
       <select
         aria-label="Perfil em demonstração"
         value={papel}
-        onChange={(event) => selecionarPapel(event.target.value as Papel)}
+        onChange={(event) => {
+          const opcao = opcoes.find(({ value }) => value === event.target.value);
+          if (opcao) selecionarPapel(opcao.value);
+        }}
         className="max-w-[10rem] rounded-md border border-line bg-white px-2 py-2 text-sm font-semibold text-ink sm:max-w-[14rem]"
       >
-        {opcoesPapel.map((opcao) => (
+        {opcoes.map((opcao) => (
           <option key={opcao.value} value={opcao.value}>
             {opcao.label}
           </option>

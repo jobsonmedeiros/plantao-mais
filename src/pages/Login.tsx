@@ -132,6 +132,12 @@ export default function Login() {
             Criar cadastro
           </Link>
         </p>
+        <p className="border-t border-line pt-4 text-center text-sm">
+          Quer conhecer o sistema?{" "}
+          <Link to="/demo" className="font-semibold text-brand-dark underline">
+            Ver demonstração pública
+          </Link>
+        </p>
       </form>
     </AuthLayout>
   );
