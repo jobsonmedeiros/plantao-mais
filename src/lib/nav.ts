@@ -55,7 +55,7 @@ export const navByRole: Record<Role, NavItem[]> = {
     item("/app/escalas", "Escalas", "Escalas", CalendarDays, true),
     item("/app/profissionais", "Profissionais", "Equipe", Users),
     item("/app/setores", "Setores", "Setores", Layers),
-    item("/app/trocas", "Trocas de plantões", "Trocas", ArrowLeftRight, true),
+    item("/app/trocas", "Trocas do setor", "Trocas", ArrowLeftRight, true),
     item("/app/aprovacoes", "Aprovações", "Aprovar", ClipboardCheck, true),
     item("/app/relatorios", "Relatórios", "Relatórios", BarChart3),
     item("/app/configuracoes", "Configurações", "Ajustes", Settings),

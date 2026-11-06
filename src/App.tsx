@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
+import { useRole } from "@/lib/role-context";
 import { RequireAuth } from "@/components/RequireAuth";
 import { modules } from "@/lib/modules";
 
@@ -16,6 +17,7 @@ const Register = lazy(() => import("@/pages/Register"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const SchedulesPage = lazy(() => import("@/pages/SchedulesPage"));
 const SwapsPage = lazy(() => import("@/pages/SwapsPage"));
+const SwapsOverviewPage = lazy(() => import("@/pages/SwapsOverviewPage"));
 const ModuleRoute = lazy(() => import("@/pages/ModuleRoute"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
@@ -24,6 +26,12 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 // instituições verem a interface sem precisar de conta. Não há guard de papel
 // aqui de propósito — o seletor de perfil do demo só filtra opções do menu.
 // O DemoAuthProvider garante que os dados são fictícios e não persistidos.
+// A gerência enxerga a visão de supervisão; o profissional enxerga as próprias trocas.
+function TrocasDemo() {
+  const { role } = useRole();
+  return role === "manager" || role === "institution_admin" ? <SwapsOverviewPage /> : <SwapsPage />;
+}
+
 function ModuloDemo({ slug }: { slug: string }) {
   const modulo = modules[slug];
   if (!modulo) return <Navigate to="/demo/app" replace />;
@@ -55,7 +63,7 @@ export default function App() {
             <Route path="minha-escala" element={<SchedulesPage />} />
             <Route path="escala-colegas" element={<SchedulesPage />} />
             <Route path="profissionais" element={<ProfessionalsPage />} />
-            <Route path="trocas" element={<SwapsPage />} />
+            <Route path="trocas" element={<TrocasDemo />} />
             <Route path="trocar-plantao" element={<SwapsPage />} />
             <Route path="minhas-solicitacoes" element={<SwapsPage />} />
             <Route path="aprovacoes" element={<ApprovalsPage />} />

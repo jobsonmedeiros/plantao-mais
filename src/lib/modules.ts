@@ -57,11 +57,15 @@ export const modules: Record<string, ModuleInfo> = {
     features: ["Criar unidades e setores", "Definir quem gerencia cada setor", "Pesquisar, editar e desativar setores"],
   },
   trocas: {
-    title: "Trocas de plantões",
-    description: "Acompanhe as propostas de troca entre profissionais do setor.",
+    title: "Trocas do setor",
+    description: "Acompanhe as negociações de troca entre os profissionais do setor.",
     icon: ArrowLeftRight,
     stage: 5,
-    features: ["Ver propostas em andamento e o estado de cada uma", "Consultar o mural de plantões disponíveis", "Acompanhar o histórico das negociações"],
+    features: [
+      "Ver cada negociação e em que etapa ela está",
+      "Identificar quais aguardam a decisão da gerência",
+      "Filtrar por status, profissional ou setor",
+    ],
   },
   aprovacoes: {
     title: "Aprovações",

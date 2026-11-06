@@ -31,9 +31,11 @@ describe("demonstração pública", () => {
     expect(await screen.findByRole("heading", { name: "Painel de gerência" })).toBeInTheDocument();
     expect(screen.getByText(/Ambiente de demonstração/)).toBeInTheDocument();
 
-    await user.click(screen.getAllByRole("link", { name: "Trocas de plantões" })[0]);
+    await user.click(screen.getAllByRole("link", { name: "Trocas do setor" })[0]);
 
-    expect(await screen.findByRole("heading", { name: "Trocas de Plantão" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Trocas do setor" })).toBeInTheDocument();
+    // A gerência acompanha; não propõe troca.
+    expect(screen.queryByRole("button", { name: /Propor nova troca/i })).not.toBeInTheDocument();
   });
 
   it("limita os perfis públicos e oculta acesso ao perfil conectado", async () => {

@@ -140,8 +140,8 @@ export default function SwapsPage() {
   return (
     <>
       <PageHeader
-        title="Trocas de Plantão"
-        description="Mural de oportunidades e fluxo formal de propostas de troca entre profissionais."
+        title="Minhas trocas"
+        description="Mural de oportunidades do setor e o fluxo formal das suas propostas de troca."
         action={
           <Button
             onClick={() => setModalAberto(true)}

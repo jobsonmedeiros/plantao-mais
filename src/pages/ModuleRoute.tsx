@@ -9,6 +9,7 @@ const InstitutionsPage = lazy(() => import("@/pages/InstitutionsPage"));
 const SchedulesPage = lazy(() => import("@/pages/SchedulesPage"));
 const ProfessionalsPage = lazy(() => import("@/pages/ProfessionalsPage"));
 const SwapsPage = lazy(() => import("@/pages/SwapsPage"));
+const SwapsOverviewPage = lazy(() => import("@/pages/SwapsOverviewPage"));
 const ApprovalsPage = lazy(() => import("@/pages/ApprovalsPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 
@@ -22,7 +23,12 @@ export default function ModuleRoute() {
   if (slug === "instituicoes") return <InstitutionsPage />;
   if (slug === "escalas" || slug === "minha-escala" || slug === "escala-colegas") return <SchedulesPage />;
   if (slug === "profissionais") return <ProfessionalsPage />;
-  if (slug === "trocas" || slug === "trocar-plantao" || slug === "minhas-solicitacoes") return <SwapsPage />;
+  // A gerência acompanha as trocas do setor; propor troca é do profissional, sobre o
+  // próprio plantão (create_swap_request exige membership do solicitante). Ver FE-06.
+  if (slug === "trocas") {
+    return role === "manager" || role === "institution_admin" ? <SwapsOverviewPage /> : <SwapsPage />;
+  }
+  if (slug === "trocar-plantao" || slug === "minhas-solicitacoes") return <SwapsPage />;
   if (slug === "aprovacoes") return <ApprovalsPage />;
   if (slug === "meu-perfil") return <ProfilePage />;
   return <ModulePage module={module} />;
