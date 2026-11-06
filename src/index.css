@@ -6,52 +6,52 @@
   color-scheme: light;
   --color-page: 255 255 255;
   --color-paper: 255 255 255;
-  --color-navy: 20 58 102;
-  --color-navy-600: 27 75 128;
-  --color-navy-700: 15 45 80;
-  --color-brand: 31 95 166;
-  --color-brand-dark: 23 76 134;
-  --color-brand-tint: 230 239 250;
-  --color-ok: 30 143 99;
-  --color-ok-dark: 20 99 71;
-  --color-ok-tint: 227 244 236;
-  --color-warn: 217 130 43;
-  --color-warn-dark: 138 75 6;
-  --color-warn-tint: 253 240 222;
-  --color-danger: 201 74 74;
-  --color-danger-dark: 155 44 44;
-  --color-danger-tint: 251 233 233;
-  --color-surface: 244 247 251;
-  --color-line: 220 228 238;
-  --color-ink: 23 40 60;
-  --color-ink-soft: 81 99 122;
+  --color-navy: 11 59 51;
+  --color-navy-600: 18 84 74;
+  --color-navy-700: 7 42 37;
+  --color-brand: 14 124 102;
+  --color-brand-dark: 10 95 79;
+  --color-brand-tint: 227 244 239;
+  --color-ok: 21 127 91;
+  --color-ok-dark: 15 92 66;
+  --color-ok-tint: 225 243 236;
+  --color-warn: 184 107 30;
+  --color-warn-dark: 122 67 10;
+  --color-warn-tint: 252 239 221;
+  --color-danger: 178 59 59;
+  --color-danger-dark: 138 38 38;
+  --color-danger-tint: 251 231 231;
+  --color-surface: 242 247 245;
+  --color-line: 214 227 222;
+  --color-ink: 19 42 38;
+  --color-ink-soft: 76 99 96;
   --tw-ring-offset-color: rgb(255 255 255);
 }
 
 :root.dark {
   color-scheme: dark;
-  --color-page: 15 23 32;
-  --color-paper: 25 36 48;
-  --color-navy: 10 24 39;
-  --color-navy-600: 21 41 61;
-  --color-navy-700: 6 16 28;
-  --color-brand: 52 117 184;
-  --color-brand-dark: 157 200 246;
-  --color-brand-tint: 29 48 68;
-  --color-ok: 20 118 83;
-  --color-ok-dark: 140 221 184;
-  --color-ok-tint: 27 58 47;
-  --color-warn: 155 88 11;
+  --color-page: 13 22 20;
+  --color-paper: 22 34 31;
+  --color-navy: 9 32 28;
+  --color-navy-600: 18 62 55;
+  --color-navy-700: 5 22 19;
+  --color-brand: 45 168 143;
+  --color-brand-dark: 141 219 200;
+  --color-brand-tint: 24 51 46;
+  --color-ok: 32 150 110;
+  --color-ok-dark: 140 221 192;
+  --color-ok-tint: 25 55 47;
+  --color-warn: 168 111 38;
   --color-warn-dark: 255 208 140;
-  --color-warn-tint: 66 48 27;
-  --color-danger: 178 68 68;
+  --color-warn-tint: 62 47 27;
+  --color-danger: 175 72 72;
   --color-danger-dark: 255 166 166;
-  --color-danger-tint: 69 39 42;
-  --color-surface: 21 31 42;
-  --color-line: 49 63 77;
-  --color-ink: 231 238 245;
-  --color-ink-soft: 174 188 202;
-  --tw-ring-offset-color: rgb(15 23 32);
+  --color-danger-tint: 66 38 38;
+  --color-surface: 20 31 28;
+  --color-line: 45 63 58;
+  --color-ink: 229 240 237;
+  --color-ink-soft: 168 188 183;
+  --tw-ring-offset-color: rgb(13 22 20);
 }
 
 @layer base {
@@ -86,7 +86,7 @@ html.dark .bg-white {
 
 html.dark .logo-mark-light {
   background-color: #ffffff;
-  color: #143a66;
+  color: #0b3b33;
 }
 
 html.dark * {
@@ -103,7 +103,7 @@ html.dark * {
   html,
   body {
     background: #ffffff !important;
-    color: #17283c !important;
+    color: #132a26 !important;
     print-color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;
     margin: 0 !important;

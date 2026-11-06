@@ -279,13 +279,13 @@ export default function ProfessionalsPage() {
         <CardContent className="p-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Input de Busca */}
-            <div className="relative flex-1">
+            <div className="relative min-w-0 flex-1 lg:min-w-[16rem]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
               <Input
-                placeholder="Buscar por nome, e-mail ou COREN..."
+                placeholder="Buscar nome, e-mail ou COREN"
                 value={termoBusca}
                 onChange={(e) => setTermoBusca(e.target.value)}
-                className="pl-9"
+                className="min-w-0 pl-9"
               />
             </div>
 
@@ -344,22 +344,24 @@ export default function ProfessionalsPage() {
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full min-w-[880px] text-left text-sm">
               <thead className="border-b border-line bg-surface text-xs uppercase tracking-wider text-ink-soft">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">Profissional</th>
-                  <th className="px-6 py-4 font-semibold">Cargo / Função</th>
-                  <th className="px-6 py-4 font-semibold">Setores Vinculados</th>
-                  <th className="px-6 py-4 font-semibold">Plantões no Mês</th>
-                  <th className="px-6 py-4 font-semibold">Status</th>
-                  <th className="px-6 py-4 text-right font-semibold">Ações</th>
+                  <th className="px-4 py-3 font-semibold">Profissional</th>
+                  <th className="px-4 py-3 font-semibold">Cargo / Função</th>
+                  <th className="px-4 py-3 font-semibold">Setores Vinculados</th>
+                  <th className="px-4 py-3 font-semibold">Plantões no Mês</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="sticky right-0 bg-surface px-4 py-3 text-right font-semibold shadow-[-8px_0_8px_-8px_rgba(19,42,38,0.18)]">
+                    Ações
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {profissionaisFiltrados.map((prof) => (
                   <tr key={prof.id} className="transition-colors hover:bg-surface/60">
                     {/* Identificação */}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 align-top">
                       <div className="flex items-center gap-3">
                         <div
                           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold shadow-sm ${prof.corAvatar}`}
@@ -379,15 +381,15 @@ export default function ProfessionalsPage() {
                               </span>
                             )}
                           </div>
-                          <div className="flex flex-wrap items-center gap-x-3 text-xs text-ink-soft">
-                            <span>{prof.coren}</span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Mail className="h-3 w-3" /> {prof.email}
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-ink-soft">
+                            <span className="font-medium">{prof.coren}</span>
+                            <span aria-hidden="true">·</span>
+                            <span className="inline-flex items-center gap-1">
+                              <Mail className="h-3 w-3" aria-hidden="true" /> {prof.email}
                             </span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Phone className="h-3 w-3" /> {prof.telefone}
+                            <span aria-hidden="true">·</span>
+                            <span className="inline-flex items-center gap-1">
+                              <Phone className="h-3 w-3" aria-hidden="true" /> {prof.telefone}
                             </span>
                           </div>
                         </div>
@@ -395,7 +397,7 @@ export default function ProfessionalsPage() {
                     </td>
 
                     {/* Cargo */}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 align-top">
                       <div className="flex items-center gap-1.5 font-medium text-ink">
                         <Stethoscope className="h-4 w-4 text-brand" />
                         {prof.cargo}
@@ -403,7 +405,7 @@ export default function ProfessionalsPage() {
                     </td>
 
                     {/* Setores */}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 align-top">
                       <div className="flex flex-wrap gap-1.5">
                         {prof.setores.map((setor) => (
                           <span
@@ -418,14 +420,14 @@ export default function ProfessionalsPage() {
                     </td>
 
                     {/* Plantões */}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 align-top">
                       <span className="font-bold text-ink">
                         {prof.plantoesNoMes} <span className="text-xs font-normal text-ink-soft">plantões</span>
                       </span>
                     </td>
 
                     {/* Status */}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 align-top">
                       {prof.status === "active" && (
                         <Badge variant="success" className="gap-1">
                           <CheckCircle2 className="h-3 w-3" /> Ativo
@@ -444,7 +446,7 @@ export default function ProfessionalsPage() {
                     </td>
 
                     {/* Ações */}
-                    <td className="px-6 py-4 text-right">
+                    <td className="sticky right-0 bg-white px-4 py-3 text-right align-top shadow-[-8px_0_8px_-8px_rgba(19,42,38,0.18)]">
                       {prof.status === "invited" ? (
                         <Button
                           variant="outline"
@@ -482,6 +484,9 @@ export default function ProfessionalsPage() {
               </div>
             )}
           </div>
+          <p className="border-t border-line px-4 py-2 text-xs text-ink-soft xl:hidden">
+            ← Arraste a tabela para o lado para ver a coluna de ações →
+          </p>
         </CardContent>
       </Card>
 

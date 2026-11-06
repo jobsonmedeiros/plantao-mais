@@ -10,6 +10,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { ShiftChip, shiftKinds, type ShiftKind } from "@/components/ShiftChip";
+import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -252,46 +253,45 @@ export default function SchedulesPage() {
     <>
       {/* ────────────────── VISTA EM TELA (WEB) ────────────────── */}
       <div className="print:hidden">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+        <PageHeader
+          eyebrow={
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand">
               <span>Hospital Santa Maria</span>
-              <span>•</span>
+              <span aria-hidden="true">•</span>
               <span>UTI Geral</span>
             </div>
-            <h1 className="text-2xl font-extrabold text-ink">Escala Mensal • Novembro 2026</h1>
-            <p className="text-sm text-ink-soft">
-              Visualização espaçada em quinzenas para leitura confortável. Clique em qualquer célula para alternar o turno.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setModalImpressaoAberto(true)}
-              className="flex items-center gap-1.5 shadow-sm"
-            >
-              <Download className="h-4 w-4" />
-              Exportar PDF (2 Páginas)
-            </Button>
-
-            {escalaPublicada ? (
-              <Badge variant="success" className="px-3 py-1.5 text-sm gap-1.5">
-                <CheckCircle2 className="h-4 w-4" /> Escala Oficial Publicada
-              </Badge>
-            ) : (
+          }
+          title="Escala Mensal • Novembro 2026"
+          description="Visualização espaçada em quinzenas para leitura confortável. Clique em qualquer célula para alternar o turno."
+          action={
+            <>
               <Button
+                variant="outline"
                 size="sm"
-                onClick={() => setEscalaPublicada(true)}
-                className="flex items-center gap-2 bg-brand text-white shadow-sm"
+                onClick={() => setModalImpressaoAberto(true)}
+                className="gap-1.5 shadow-sm"
               >
-                <Sparkles className="h-4 w-4" />
-                Publicar escala oficial
+                <Download className="h-4 w-4" aria-hidden="true" />
+                Exportar PDF
               </Button>
-            )}
-          </div>
-        </div>
+
+              {escalaPublicada ? (
+                <Badge variant="success" className="gap-1.5 px-3 py-1.5 text-sm">
+                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Escala publicada
+                </Badge>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={() => setEscalaPublicada(true)}
+                  className="gap-1.5 bg-brand text-white shadow-sm"
+                >
+                  <Sparkles className="h-4 w-4" aria-hidden="true" />
+                  Publicar
+                </Button>
+              )}
+            </>
+          }
+        />
 
         <Card>
           <CardContent className="space-y-5 p-5">

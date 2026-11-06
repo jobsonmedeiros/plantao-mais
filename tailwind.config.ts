@@ -1,9 +1,12 @@
 import type { Config } from "tailwindcss";
 
-// Paleta do Plantão+: azul como cor principal, branco de fundo,
-// verde para conclusão, laranja para pendência, vermelho para alerta/rejeição.
+// Paleta do Plantão+: o verde-esmeralda é a cor simbólica da enfermagem no
+// Brasil (anel de formatura, emblema do COREN) e passa a ser a identidade do
+// produto. O azul fica reservado para informação funcional (turno noturno,
+// badges neutros), não como cor principal.
 // Cada cor tem uma versão "dark" (texto) e "tint" (fundo) para manter contraste
 // e permitir que o significado seja dado também por texto, não só por cor.
+// Os valores vivem em src/index.css para permitir alternância de tema claro/escuro.
 const config: Config = {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
