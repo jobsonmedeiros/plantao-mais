@@ -32,6 +32,18 @@ function TrocasDemo() {
   return role === "manager" || role === "institution_admin" ? <SwapsOverviewPage /> : <SwapsPage />;
 }
 
+function TrocasProfissionalDemo() {
+  const { role } = useRole();
+  return role === "professional" ? <SwapsPage /> : <Navigate to="/demo/app/trocas" replace />;
+}
+
+function AprovacoesDemo() {
+  const { role } = useRole();
+  return role === "manager" || role === "institution_admin"
+    ? <ApprovalsPage />
+    : <Navigate to="/demo/app/minhas-solicitacoes" replace />;
+}
+
 function ModuloDemo({ slug }: { slug: string }) {
   const modulo = modules[slug];
   if (!modulo) return <Navigate to="/demo/app" replace />;
@@ -64,9 +76,9 @@ export default function App() {
             <Route path="escala-colegas" element={<SchedulesPage />} />
             <Route path="profissionais" element={<ProfessionalsPage />} />
             <Route path="trocas" element={<TrocasDemo />} />
-            <Route path="trocar-plantao" element={<SwapsPage />} />
-            <Route path="minhas-solicitacoes" element={<SwapsPage />} />
-            <Route path="aprovacoes" element={<ApprovalsPage />} />
+            <Route path="trocar-plantao" element={<TrocasProfissionalDemo />} />
+            <Route path="minhas-solicitacoes" element={<TrocasProfissionalDemo />} />
+            <Route path="aprovacoes" element={<AprovacoesDemo />} />
             <Route path="setores" element={<ModuloDemo slug="setores" />} />
             <Route path="relatorios" element={<ModuloDemo slug="relatorios" />} />
             <Route path="configuracoes" element={<ModuloDemo slug="configuracoes" />} />

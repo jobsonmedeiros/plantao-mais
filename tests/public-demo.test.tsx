@@ -5,10 +5,10 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import App from "@/App";
 import { ThemeProvider } from "@/lib/theme-context";
 
-function renderDemo() {
+function renderDemo(rota = "/demo") {
   return render(
     <ThemeProvider>
-      <MemoryRouter initialEntries={["/demo"]}>
+      <MemoryRouter initialEntries={[rota]}>
         <CurrentPath />
         <App />
       </MemoryRouter>
@@ -49,5 +49,13 @@ describe("demonstração pública", () => {
 
     expect(await screen.findByText("Olá, Demonstração • Profissional")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Meu perfil" })).not.toBeInTheDocument();
+  });
+
+  it("não oferece troca de plantão no perfil de gerência", async () => {
+    renderDemo("/demo/app/trocar-plantao");
+
+    expect(await screen.findByRole("heading", { name: "Trocas do setor" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Tenho interesse/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Propor nova troca/i })).not.toBeInTheDocument();
   });
 });
