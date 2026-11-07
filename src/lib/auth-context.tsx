@@ -1,75 +1,33 @@
 import {
-  createContext,
   useCallback,
   useContext,
   useEffect,
-  lazy,
   useMemo,
   useRef,
-  Suspense,
   useState,
   type ReactNode,
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { traduzirErroAuth } from "@/lib/auth-errors";
+import {
+  AuthContext,
+  type Papel,
+  type PerfilUsuario,
+  type ResultadoAuth,
+  type SetorVinculado,
+  type VinculoInstitucional,
+} from "@/lib/auth-contract";
 
-export type Papel = "platform_admin" | "institution_admin" | "manager" | "professional";
-
-export type PerfilUsuario = {
-  id: string;
-  email: string;
-  nomeCompleto: string;
-  telefone: string;
-  ePlatformAdmin: boolean;
-};
-
-export type SetorVinculado = {
-  id: string;
-  nome: string;
-  cargo: string | null;
-  eGerente: boolean;
-};
-
-export type VinculoInstitucional = {
-  id: string;
-  institutionId: string;
-  institutionName: string;
-  role: Exclude<Papel, "platform_admin">;
-  setores: SetorVinculado[];
-};
-
-export type ResultadoAuth = {
-  erro?: string;
-  confirmacaoPendente?: boolean;
-  precisaConfirmarEmail?: boolean;
-};
-
-export type ContextoAutenticacaoValor = {
-  usuario: User | null;
-  sessao: Session | null;
-  perfil: PerfilUsuario | null;
-  vinculos: VinculoInstitucional[];
-  instituicaoAtivaId: string | null;
-  papelAtivo: Papel | null;
-  carregando: boolean;
-  erroCarregamento: string | null;
-  definirInstituicaoAtiva: (instituicaoId: string) => void;
-  recarregarContexto: () => Promise<ResultadoAuth>;
-  entrar: (email: string, senha: string) => Promise<ResultadoAuth>;
-  cadastrar: (
-    email: string,
-    senha: string,
-    nomeCompleto: string,
-    emailRedirectTo?: string,
-  ) => Promise<ResultadoAuth>;
-  reenviarConfirmacao: (email: string, emailRedirectTo?: string) => Promise<ResultadoAuth>;
-  sair: () => Promise<ResultadoAuth>;
-  recuperarSenha: (email: string) => Promise<ResultadoAuth>;
-  atualizarSenha: (senha: string) => Promise<ResultadoAuth>;
-};
-
-export const AuthContext = createContext<ContextoAutenticacaoValor | null>(null);
+export {
+  AuthContext,
+  type ContextoAutenticacaoValor,
+  type Papel,
+  type PerfilUsuario,
+  type ResultadoAuth,
+  type SetorVinculado,
+  type VinculoInstitucional,
+} from "@/lib/auth-contract";
 
 function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<User | null>(null);
@@ -411,19 +369,7 @@ function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-const DemoAuthProvider = import.meta.env.DEV
-  ? lazy(() => import("@/lib/demo/auth-provider").then((modulo) => ({ default: modulo.DemoAuthProvider })))
-  : null;
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  if (import.meta.env.DEV && !isSupabaseConfigured && DemoAuthProvider) {
-    return (
-      <Suspense fallback={<div role="status">Carregando o ambiente de demonstração...</div>}>
-        <DemoAuthProvider>{children}</DemoAuthProvider>
-      </Suspense>
-    );
-  }
-
   return <SupabaseAuthProvider>{children}</SupabaseAuthProvider>;
 }
 

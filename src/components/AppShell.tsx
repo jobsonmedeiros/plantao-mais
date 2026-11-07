@@ -6,7 +6,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/lib/auth-context";
 import { navByRole, type NavItem } from "@/lib/nav";
 import { roleLabels, useRole } from "@/lib/role-context";
-import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 const DemoAppRoleSelector = lazy(() =>
@@ -138,7 +137,7 @@ export function AppShell({ modoDemoPublico = false }: { modoDemoPublico?: boolea
     modoDemoPublico ? { ...item, to: `/demo${item.to}` } : item,
   );
   const caminho = (path: string) => modoDemoPublico ? `/demo${path}` : path;
-  const exibirDemo = modoDemoPublico || (import.meta.env.DEV && !isSupabaseConfigured);
+  const exibirDemo = modoDemoPublico;
 
   async function handleSair() {
     const resultado = await sair();

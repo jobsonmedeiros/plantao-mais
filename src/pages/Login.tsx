@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "@/components/AuthLayout";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { isSupabaseConfigured } from "@/lib/supabase";
-
-const DemoLoginRoleSelector = import.meta.env.DEV
-  ? lazy(() => import("@/lib/demo/auth-provider").then((modulo) => ({ default: modulo.DemoLoginRoleSelector })))
-  : null;
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -22,8 +18,6 @@ export default function Login() {
   const { entrar, reenviarConfirmacao, usuario, carregando: carregandoSessao } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const modoDemo = import.meta.env.DEV && !isSupabaseConfigured;
-
   if (!carregandoSessao && usuario) return <Navigate to="/app" replace />;
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -65,11 +59,6 @@ export default function Login() {
   return (
     <AuthLayout title="Entrar no Plantão+" subtitle="Use o e-mail e a senha da sua conta.">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {modoDemo && DemoLoginRoleSelector && (
-          <Suspense fallback={<p role="status">Carregando demonstração...</p>}>
-            <DemoLoginRoleSelector />
-          </Suspense>
-        )}
         {!isSupabaseConfigured && !import.meta.env.DEV && (
           <div role="alert" className="rounded-md bg-danger-tint p-3 text-sm font-medium text-danger-dark">
             Autenticação indisponível: este ambiente não está conectado ao Supabase.
@@ -118,7 +107,7 @@ export default function Login() {
         )}
 
         <Button type="submit" className="w-full" disabled={carregando}>
-          {carregando ? "Entrando..." : modoDemo ? "Entrar na demonstração" : "Entrar"}
+          {carregando ? "Entrando..." : "Entrar"}
         </Button>
 
         <p className="text-center text-sm">

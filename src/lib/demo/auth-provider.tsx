@@ -6,7 +6,7 @@ import {
   type Papel,
   type PerfilUsuario,
   type VinculoInstitucional,
-} from "@/lib/auth-context";
+} from "@/lib/auth-contract";
 
 type DemoAuthValue = {
   papel: Papel;
@@ -137,35 +137,6 @@ function useDemoAuth() {
   const contexto = useContext(DemoAuthContext);
   if (!contexto) throw new Error("O seletor de demonstração exige o provedor de demonstração.");
   return contexto;
-}
-
-export function DemoLoginRoleSelector() {
-  const { papel, opcoesPapel: opcoes, selecionarPapel } = useDemoAuth();
-  return (
-    <div className="rounded-md border border-brand/30 bg-brand-tint p-3">
-      <label htmlFor="perfil-demo" className="text-sm font-medium">
-        Perfil em demonstração
-      </label>
-      <select
-        id="perfil-demo"
-        value={papel}
-        onChange={(event) => {
-          const opcao = opcoes.find(({ value }) => value === event.target.value);
-          if (opcao) selecionarPapel(opcao.value, true);
-        }}
-        className="mt-2 w-full rounded-md border border-line bg-white px-3 py-2 text-sm font-medium text-ink shadow-sm"
-      >
-        {opcoes.map((opcao) => (
-          <option key={opcao.value} value={opcao.value}>
-            {opcao.label}
-          </option>
-        ))}
-      </select>
-      <p role="status" className="mt-3 text-sm font-medium text-brand-dark">
-        Ambiente de demonstração: os dados são fictícios e não são persistidos.
-      </p>
-    </div>
-  );
 }
 
 export function DemoAppRoleSelector() {

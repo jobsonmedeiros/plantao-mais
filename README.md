@@ -82,6 +82,14 @@ importante deste README e é mantida atualizada a cada entrega verificada.
 > com achados priorizados, critérios de aceite e requisitos pendentes de decisão, está em
 > [`CLAUDE.md`](./CLAUDE.md).
 
+### Demonstração pública
+
+A rota [`/demo`](./src/App.tsx) é uma trilha isolada para apresentação do portfólio.
+Ela usa um provedor de autenticação fictício próprio, não inicializa sessão Supabase e
+não executa RPCs nem grava dados. O acesso à demonstração acontece exclusivamente por
+essa rota; a ausência de configuração do Supabase nunca transforma o app real em modo
+demo.
+
 ### Números do repositório
 
 | Métrica | Valor |
@@ -92,7 +100,7 @@ importante deste README e é mantida atualizada a cada entrega verificada.
 | Políticas RLS | 17 tabelas protegidas |
 | Verificações de banco automatizadas | 35 passaram, 0 falharam |
 | Chamadas do frontend ao backend | Autenticação e instituições; fluxos operacionais ainda pendentes |
-| Testes de frontend | 6 passaram; cobertura global ainda não medida |
+| Testes de frontend | 9 passaram; cobertura global ainda não medida |
 
 ---
 

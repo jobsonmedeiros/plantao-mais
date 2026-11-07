@@ -185,10 +185,12 @@ export default function SchedulesPage() {
                 scope="col"
                 onClick={() => setDiaSelecionado(diaSelecionado === d.dia ? null : d.dia)}
                 className={`cursor-pointer px-2 py-2 text-center transition-colors hover:bg-brand-tint/60 ${
-                  d.eFimDeSemana ? "bg-amber-50/70" : ""
+                  d.eFimDeSemana ? "bg-warn-tint text-warn-dark" : ""
                 } ${diaSelecionado === d.dia ? "bg-brand-tint ring-2 ring-brand ring-inset" : ""}`}
               >
-                <div className="text-xs uppercase font-bold text-ink-soft">{d.diaSemanaTexto}</div>
+                <div className={`text-xs uppercase font-bold ${d.eFimDeSemana ? "text-warn-dark" : "text-ink-soft"}`}>
+                  {d.diaSemanaTexto}
+                </div>
                 <div className="text-sm font-extrabold text-ink mt-0.5">{d.rotulo}</div>
               </th>
             ))}
@@ -210,7 +212,7 @@ export default function SchedulesPage() {
                     onClick={() => alternarTurno(profissional.id, d.dia)}
                     title={`${profissional.nome} - Dia ${d.rotulo} (${turno}) - Clique para alternar`}
                     className={`px-1 py-2 text-center cursor-pointer select-none transition-transform hover:scale-110 ${
-                      d.eFimDeSemana ? "bg-amber-50/30" : ""
+                      d.eFimDeSemana ? "bg-warn-tint/45" : ""
                     }`}
                   >
                     <ShiftChip kind={turno} size="md" />
@@ -234,7 +236,11 @@ export default function SchedulesPage() {
                 <td
                   key={d.dia}
                   className={`px-1 py-2.5 text-center font-bold text-sm ${
-                    coberturaAbaixo ? "bg-red-50 text-danger-dark font-extrabold" : "text-ink"
+                    coberturaAbaixo
+                      ? "bg-danger-tint text-danger-dark font-extrabold"
+                      : d.eFimDeSemana
+                        ? "bg-warn-tint/45 text-warn-dark"
+                        : "text-ink"
                   }`}
                 >
                   <span className={totalDiurno < 2 ? "text-danger-dark font-extrabold" : "text-amber-600"}>{totalDiurno}</span>
